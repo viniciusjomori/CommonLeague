@@ -12,10 +12,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.jrr.apiTest.Ticket.TicketService;
+import br.com.jrr.apiTest.Ticket.DTO.BuyResponseDTO;
 import br.com.jrr.apiTest.Ticket.DTO.TicketResponseDTO;
 import br.com.jrr.apiTest.Ticket.Entity.TicketEntity;
 import br.com.jrr.apiTest.Ticket.Mapper.TicketMapper;
+import br.com.jrr.apiTest.Ticket.Service.TicketService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
@@ -37,12 +38,12 @@ public class TicketController {
         return ResponseEntity.ok(mapper.toResponse(entities));
     }
 
-    @PostMapping("/{id}/order/{qnt}")
+    @PostMapping("/{id}/buy/{qnt}")
     @RolesAllowed("CLIENT")
-    public ResponseEntity<Void> orderTicket(@PathVariable UUID id, @PathVariable int qnt) {
+    public ResponseEntity<BuyResponseDTO> orderTicket(@PathVariable UUID id, @PathVariable int qnt) {
         TicketEntity ticket = service.findById(id);
-        service.orderTicket(ticket, qnt);
-        return ResponseEntity.noContent().build();
+        BuyResponseDTO order = service.buyTicket(ticket, qnt);
+        return ResponseEntity.ok(order);
     }
 
 }

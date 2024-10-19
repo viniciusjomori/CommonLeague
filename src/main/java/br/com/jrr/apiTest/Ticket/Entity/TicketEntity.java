@@ -12,7 +12,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "tickest")
+@Table(name = "tickets")
 @Getter
 @Setter
 @SuperBuilder

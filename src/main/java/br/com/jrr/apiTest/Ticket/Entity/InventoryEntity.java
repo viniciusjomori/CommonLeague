@@ -37,8 +37,4 @@ public class InventoryEntity extends BaseEntity {
         this.qnt += qnt;
     }
 
-    public void minusQnt(int qnt) {
-        this.qnt -= qnt;
-    }
-
 }

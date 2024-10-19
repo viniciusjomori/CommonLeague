@@ -2,9 +2,9 @@ package br.com.jrr.apiTest.Ticket.DTO;
 
 import java.util.Collection;
 
-public record OrderResponseDTO(
-    Collection<ItemOrderInfo> items,
-    UrlOrderInfo back_url,
+public record BuyResponseDTO(
+    Collection<ItemBuyInfo> items,
+    UrlBuyInfo back_url,
     String notification_url,
     String external_reference,
     boolean expires,

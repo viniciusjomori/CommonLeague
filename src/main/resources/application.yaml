@@ -25,5 +25,5 @@ lol:
   base-dns: https://americas.api.riotgames.com/riot/
   api-key: 'RGAPI-5473a2d9-0a7f-4c60-8d0b-358ad8d78ee9'
 
-commomleague-pay:
+commonleague-pay:
   base-dns: http://localhost:8081/
