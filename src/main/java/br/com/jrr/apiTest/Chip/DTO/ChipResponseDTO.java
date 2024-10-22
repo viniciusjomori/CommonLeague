@@ -1,8 +1,8 @@
-package br.com.jrr.apiTest.Ticket.DTO;
+package br.com.jrr.apiTest.Chip.DTO;
 
 import java.util.UUID;
 
-public record TicketResponseDTO(
+public record ChipResponseDTO(
     UUID id,
     String description,
     double value

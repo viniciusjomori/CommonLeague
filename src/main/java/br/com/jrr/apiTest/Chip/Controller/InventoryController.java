@@ -1,4 +1,4 @@
-package br.com.jrr.apiTest.Ticket.Controller;
+package br.com.jrr.apiTest.Chip.Controller;
 
 import java.util.Collection;
 
@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.jrr.apiTest.Ticket.DTO.ItemInventoryResponseDTO;
-import br.com.jrr.apiTest.Ticket.Entity.InventoryEntity;
-import br.com.jrr.apiTest.Ticket.Mapper.InventoryMapper;
-import br.com.jrr.apiTest.Ticket.Service.InventoryService;
+import br.com.jrr.apiTest.Chip.DTO.ItemInventoryResponseDTO;
+import br.com.jrr.apiTest.Chip.Entity.InventoryEntity;
+import br.com.jrr.apiTest.Chip.Mapper.InventoryMapper;
+import br.com.jrr.apiTest.Chip.Service.InventoryService;
 
 @RestController
 @CrossOrigin(origins = "*")

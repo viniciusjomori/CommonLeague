@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import br.com.jrr.apiTest.Ticket.Service.InventoryService;
+import br.com.jrr.apiTest.Chip.Service.InventoryService;
 import br.com.jrr.apiTest.Transaction.Enum.TransactionStatus;
 
 @Service

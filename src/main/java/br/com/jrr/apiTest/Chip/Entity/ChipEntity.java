@@ -1,4 +1,4 @@
-package br.com.jrr.apiTest.Ticket.Entity;
+package br.com.jrr.apiTest.Chip.Entity;
 
 import br.com.jrr.apiTest.App.BaseEntity;
 import jakarta.persistence.Column;
@@ -12,13 +12,13 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "tickets")
+@Table(name = "chips")
 @Getter
 @Setter
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TicketEntity extends BaseEntity {
+public class ChipEntity extends BaseEntity {
     
     @Column(nullable = false, unique = true)
     private String description;

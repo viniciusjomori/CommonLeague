@@ -1,7 +1,7 @@
 package br.com.jrr.apiTest.Transaction;
 
 import br.com.jrr.apiTest.App.BaseEntity;
-import br.com.jrr.apiTest.Ticket.Entity.InventoryEntity;
+import br.com.jrr.apiTest.Chip.Entity.InventoryEntity;
 import br.com.jrr.apiTest.Transaction.Enum.TransactionStatus;
 import br.com.jrr.apiTest.Transaction.Enum.TransactionType;
 import jakarta.persistence.Column;
@@ -19,7 +19,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "tickest")
+@Table(name = "transactions")
 @Getter
 @Setter
 @SuperBuilder

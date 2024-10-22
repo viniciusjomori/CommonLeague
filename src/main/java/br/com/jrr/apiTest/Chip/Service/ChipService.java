@@ -1,4 +1,4 @@
-package br.com.jrr.apiTest.Ticket.Service;
+package br.com.jrr.apiTest.Chip.Service;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -11,19 +11,19 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.google.gson.Gson;
 
+import br.com.jrr.apiTest.Chip.DTO.BuyRequestDTO;
+import br.com.jrr.apiTest.Chip.DTO.BuyResponseDTO;
+import br.com.jrr.apiTest.Chip.Entity.InventoryEntity;
+import br.com.jrr.apiTest.Chip.Entity.ChipEntity;
+import br.com.jrr.apiTest.Chip.Repository.ChipRepository;
 import br.com.jrr.apiTest.Request.HttpDTO;
 import br.com.jrr.apiTest.Request.RequestService;
 import br.com.jrr.apiTest.Request.Enum.RequestMethod;
-import br.com.jrr.apiTest.Ticket.DTO.BuyRequestDTO;
-import br.com.jrr.apiTest.Ticket.DTO.BuyResponseDTO;
-import br.com.jrr.apiTest.Ticket.Entity.InventoryEntity;
-import br.com.jrr.apiTest.Ticket.Entity.TicketEntity;
-import br.com.jrr.apiTest.Ticket.Repository.TicketRepository;
 @Service
-public class TicketService {
+public class ChipService {
     
     @Autowired
-    private TicketRepository repository;
+    private ChipRepository repository;
 
     @Autowired
     private InventoryService inventoryService;
@@ -37,22 +37,22 @@ public class TicketService {
     @Value("commonleague-pay.base-endpoint")
     private String baseEndpoint;
 
-    public Collection<TicketEntity> findAll() {
+    public Collection<ChipEntity> findAll() {
         return repository.findAll();
     }
 
-    public TicketEntity findById(UUID id) {
+    public ChipEntity findById(UUID id) {
         return repository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
-    public BuyResponseDTO buyTicket(TicketEntity ticket, int qnt) {
-        InventoryEntity inventory= inventoryService.findByCurrentUser(ticket);
+    public BuyResponseDTO buyChip(ChipEntity chip, int qnt) {
+        InventoryEntity inventory= inventoryService.findByCurrentUser(chip);
         BuyRequestDTO order = new BuyRequestDTO(
             inventory.getId(),
-            ticket.getDescription(),
+            chip.getDescription(),
             qnt,
-            ticket.getValue()
+            chip.getValue()
         );
         HttpDTO httpDTO = requestService.request("buy", RequestMethod.POST, order);
         

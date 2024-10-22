@@ -1,4 +1,4 @@
-package br.com.jrr.apiTest.Ticket.Mapper;
+package br.com.jrr.apiTest.Chip.Mapper;
 
 import java.util.Collection;
 
@@ -7,16 +7,16 @@ import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 
-import br.com.jrr.apiTest.Ticket.DTO.ItemInventoryResponseDTO;
-import br.com.jrr.apiTest.Ticket.Entity.InventoryEntity;
+import br.com.jrr.apiTest.Chip.DTO.ItemInventoryResponseDTO;
+import br.com.jrr.apiTest.Chip.Entity.InventoryEntity;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface InventoryMapper {
     
     InventoryMapper INSTANCE = Mappers.getMapper(InventoryMapper.class);
 
-    @Mapping(source = "ticket.id", target = "ticketId")
-    @Mapping(source = "ticket.description", target = "description")
+    @Mapping(source = "chip.id", target = "chipId")
+    @Mapping(source = "chip.description", target = "description")
     ItemInventoryResponseDTO toResponse(InventoryEntity entity);
     Collection<ItemInventoryResponseDTO> toResponse(Collection<InventoryEntity> entities);
 }

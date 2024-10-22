@@ -1,4 +1,4 @@
-package br.com.jrr.apiTest.Ticket.Service;
+package br.com.jrr.apiTest.Chip.Service;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -8,9 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import br.com.jrr.apiTest.Ticket.Entity.InventoryEntity;
-import br.com.jrr.apiTest.Ticket.Entity.TicketEntity;
-import br.com.jrr.apiTest.Ticket.Repository.InventoryRepository;
+import br.com.jrr.apiTest.Chip.Entity.InventoryEntity;
+import br.com.jrr.apiTest.Chip.Entity.ChipEntity;
+import br.com.jrr.apiTest.Chip.Repository.InventoryRepository;
 import br.com.jrr.apiTest.Transaction.TransactionEntity;
 import br.com.jrr.apiTest.User.UserEntity;
 import br.com.jrr.apiTest.User.UserService;
@@ -29,10 +29,10 @@ public class InventoryService {
         return repository.findByUser(user);
     }
 
-    public InventoryEntity findByCurrentUser(TicketEntity ticket) {
+    public InventoryEntity findByCurrentUser(ChipEntity chip) {
         UserEntity user = userService.getCurrentUser();
-        return repository.findByUser(user, ticket)
-            .orElseGet(() -> createEmptyInventory(user, ticket));
+        return repository.findByUser(user, chip)
+            .orElseGet(() -> createEmptyInventory(user, chip));
     }
 
     public InventoryEntity findById(UUID id) {
@@ -51,10 +51,10 @@ public class InventoryService {
         return repository.save(inventory);
     }
 
-    private InventoryEntity createEmptyInventory(UserEntity user, TicketEntity ticket) {
+    private InventoryEntity createEmptyInventory(UserEntity user, ChipEntity chip) {
         InventoryEntity inventory = InventoryEntity.builder()
             .user(user)
-            .ticket(ticket)
+            .chip(chip)
             .qnt(0)
             .build();
         return repository.save(inventory);

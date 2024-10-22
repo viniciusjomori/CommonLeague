@@ -1,9 +1,9 @@
-package br.com.jrr.apiTest.Ticket.DTO;
+package br.com.jrr.apiTest.Chip.DTO;
 
 import java.util.UUID;
 
 public record ItemInventoryResponseDTO(
-    UUID ticketId,
+    UUID chipId,
     String description,
     int qnt
 ) {

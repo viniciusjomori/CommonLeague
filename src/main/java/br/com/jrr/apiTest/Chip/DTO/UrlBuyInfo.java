@@ -1,4 +1,4 @@
-package br.com.jrr.apiTest.Ticket.DTO;
+package br.com.jrr.apiTest.Chip.DTO;
 
 public record UrlBuyInfo(
     String success,

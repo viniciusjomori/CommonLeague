@@ -1,4 +1,4 @@
-package br.com.jrr.apiTest.Ticket.Entity;
+package br.com.jrr.apiTest.Chip.Entity;
 
 import br.com.jrr.apiTest.App.BaseEntity;
 import br.com.jrr.apiTest.User.UserEntity;
@@ -26,8 +26,8 @@ public class InventoryEntity extends BaseEntity {
     private UserEntity user;
 
     @ManyToOne
-    @JoinColumn(name = "ticket_id", nullable = false)
-    private TicketEntity ticket;
+    @JoinColumn(name = "chip_id", nullable = false)
+    private ChipEntity chip;
 
     @Column
     @Min(value = 0)

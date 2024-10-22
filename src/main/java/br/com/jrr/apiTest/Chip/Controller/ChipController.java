@@ -1,4 +1,4 @@
-package br.com.jrr.apiTest.Ticket.Controller;
+package br.com.jrr.apiTest.Chip.Controller;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -12,37 +12,37 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.jrr.apiTest.Ticket.DTO.BuyResponseDTO;
-import br.com.jrr.apiTest.Ticket.DTO.TicketResponseDTO;
-import br.com.jrr.apiTest.Ticket.Entity.TicketEntity;
-import br.com.jrr.apiTest.Ticket.Mapper.TicketMapper;
-import br.com.jrr.apiTest.Ticket.Service.TicketService;
+import br.com.jrr.apiTest.Chip.DTO.BuyResponseDTO;
+import br.com.jrr.apiTest.Chip.DTO.ChipResponseDTO;
+import br.com.jrr.apiTest.Chip.Entity.ChipEntity;
+import br.com.jrr.apiTest.Chip.Mapper.ChipMapper;
+import br.com.jrr.apiTest.Chip.Service.ChipService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("/ticket")
-public class TicketController {
+@RequestMapping("/chip")
+public class ChipController {
     
     @Autowired
-    private TicketService service;
+    private ChipService service;
 
     @Autowired
-    private TicketMapper mapper;
+    private ChipMapper mapper;
 
     @GetMapping
     @PermitAll
-    public ResponseEntity<Collection<TicketResponseDTO>> findAll() {
-        Collection<TicketEntity> entities = service.findAll();
+    public ResponseEntity<Collection<ChipResponseDTO>> findAll() {
+        Collection<ChipEntity> entities = service.findAll();
         return ResponseEntity.ok(mapper.toResponse(entities));
     }
 
     @PostMapping("/{id}/buy/{qnt}")
     @RolesAllowed("CLIENT")
-    public ResponseEntity<BuyResponseDTO> orderTicket(@PathVariable UUID id, @PathVariable int qnt) {
-        TicketEntity ticket = service.findById(id);
-        BuyResponseDTO order = service.buyTicket(ticket, qnt);
+    public ResponseEntity<BuyResponseDTO> buyChip(@PathVariable UUID id, @PathVariable int qnt) {
+        ChipEntity chip = service.findById(id);
+        BuyResponseDTO order = service.buyChip(chip, qnt);
         return ResponseEntity.ok(order);
     }
 
