@@ -59,9 +59,8 @@ public class TeamController {
     @GetMapping("/current")
     @RolesAllowed({"TEAM_MEMBER", "TEAM_CAPTAIN"})
     public ResponseEntity<TeamResponseDTO> findCurrentTeam() {
-        UserEntity user = userService.getCurrentUser();
         TeamEntity team = teamService
-            .findActiveByUser(user)
+            .getCurrentTeam()
             .get()
             .getTeam();
         

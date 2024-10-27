@@ -69,6 +69,11 @@ public class TeamService {
         return joinRepository.findActiveByTeam(team);
     }
 
+    public Optional<TeamJoinEntity> getCurrentTeam() {
+        UserEntity user = userService.getCurrentUser();
+        return findActiveByUser(user);
+    }
+
     public TeamJoinEntity leftTeam() {
         UserEntity user = userService.getCurrentUser();
         TeamJoinEntity join = findActiveByUser(user)
