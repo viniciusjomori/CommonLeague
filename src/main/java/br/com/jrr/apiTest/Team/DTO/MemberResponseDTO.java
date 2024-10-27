@@ -6,6 +6,7 @@ import br.com.jrr.apiTest.Team.Enum.TeamRoleName;
 
 public record MemberResponseDTO(
     UUID userId,
+    boolean openToPlay,
     TeamRoleName role
 ) {
     

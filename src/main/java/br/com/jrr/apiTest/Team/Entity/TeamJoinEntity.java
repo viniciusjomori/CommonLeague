@@ -47,4 +47,7 @@ public class TeamJoinEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private TeamJoinStatus joinStatus;
 
+    @Column
+    private boolean openToPlay;
+
 }
