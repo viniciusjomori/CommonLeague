@@ -25,6 +25,6 @@ public class ChipEntity extends BaseEntity {
 
     @Positive
     @Column(nullable = false)
-    private double value;
+    private int value;
 
 }

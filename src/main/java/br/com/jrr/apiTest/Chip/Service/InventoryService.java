@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -41,6 +42,9 @@ public class InventoryService {
     @Autowired
     private Gson gson;
 
+    @Value("${commonleague-pay.base-dns}")
+    private String baseEndpoint;
+
     public Collection<InventoryEntity> findByCurrentUser() {
         UserEntity user = userService.getCurrentUser();
         return repository.findByUser(user);
@@ -55,7 +59,9 @@ public class InventoryService {
             qnt,
             chip.getValue()
         );
-        HttpDTO httpDTO = requestService.request("buy", RequestMethod.POST, order);
+        String endpoint = baseEndpoint + "buychips";
+
+        HttpDTO httpDTO = requestService.request(endpoint, RequestMethod.POST, order);
         
         if(httpDTO.statusCode() == 200) {
             String json = httpDTO.jsonBody();

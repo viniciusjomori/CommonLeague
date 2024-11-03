@@ -5,6 +5,6 @@ import java.util.UUID;
 public record BuyRequestDTO(
     UUID inventory_id,
     String title,
-    int qtde_ficha,
-    double unit_price
+    int chips_qty,
+    int unit_price
 ) {}

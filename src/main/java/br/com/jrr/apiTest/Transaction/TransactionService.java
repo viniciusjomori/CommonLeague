@@ -29,21 +29,14 @@ public class TransactionService {
 
     public void processTransaction(UUID id) {
         TransactionEntity transaction = findById(id);
-        processTransaction(transaction);
+        inventoryService.processTransaction(transaction);
     }
 
     public void processTransaction(TransactionEntity transaction) {
-        TransactionStatus status = transaction.getStatus();
-        if (status.equals(TransactionStatus.PENDING))
-            inventoryService.processTransaction(transaction);
+        inventoryService.processTransaction(transaction);
     }
 
     public void processTransactions(Collection<TransactionEntity> transactions) {
-        for (TransactionEntity transaction : transactions) {
-            TransactionStatus status = transaction.getStatus();
-            if (!status.equals(TransactionStatus.PENDING))
-                throw new ResponseStatusException(HttpStatus.CONFLICT);
-        }
         inventoryService.processTransactions(transactions);
     }
 
@@ -86,7 +79,7 @@ public class TransactionService {
         for (InventoryEntity inventory : inventories) {
             TransactionEntity transaction = TransactionEntity.builder()
                 .type(type)
-                .status(TransactionStatus.PENDING)
+                .status(TransactionStatus.pending)
                 .qnt(qntChips)
                 .inventory(inventory)
                 .build();

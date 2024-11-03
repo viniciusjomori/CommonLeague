@@ -17,6 +17,7 @@ import br.com.jrr.apiTest.Chip.DTO.ChipResponseDTO;
 import br.com.jrr.apiTest.Chip.Entity.ChipEntity;
 import br.com.jrr.apiTest.Chip.Mapper.ChipMapper;
 import br.com.jrr.apiTest.Chip.Service.ChipService;
+import br.com.jrr.apiTest.Chip.Service.InventoryService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
@@ -26,7 +27,10 @@ import jakarta.annotation.security.RolesAllowed;
 public class ChipController {
     
     @Autowired
-    private ChipService service;
+    private InventoryService inventoryService;
+
+    @Autowired
+    private ChipService chipService;
 
     @Autowired
     private ChipMapper mapper;
@@ -34,15 +38,14 @@ public class ChipController {
     @GetMapping
     @PermitAll
     public ResponseEntity<Collection<ChipResponseDTO>> findAll() {
-        Collection<ChipEntity> entities = service.findAll();
+        Collection<ChipEntity> entities = chipService.findAll();
         return ResponseEntity.ok(mapper.toResponse(entities));
     }
 
-    @PostMapping("/{id}/buy/{qnt}")
+    @PostMapping("/{chipId}/buy/{qnt}")
     @RolesAllowed("CLIENT")
-    public ResponseEntity<BuyResponseDTO> buyChip(@PathVariable UUID id, @PathVariable int qnt) {
-        ChipEntity chip = service.findById(id);
-        BuyResponseDTO order = service.buyChip(chip, qnt);
+    public ResponseEntity<BuyResponseDTO> buyChip(@PathVariable UUID chipId, @PathVariable int qnt) {
+        BuyResponseDTO order = inventoryService.buyChip(chipId, qnt);
         return ResponseEntity.ok(order);
     }
 

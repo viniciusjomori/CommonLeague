@@ -46,7 +46,10 @@ public class RequestService {
             entity.getBody()
         );
 
-        entity.setResponse(httpDTO.jsonBody());
+        String jsonBody = httpDTO.jsonBody();
+        jsonBody = jsonBody.length() > 1000 ? jsonBody.substring(0, 1000) : jsonBody;
+
+        entity.setResponse(jsonBody);
         entity.setResponseDate(LocalDateTime.now());
         entity.setHttpStatus(httpDTO.statusCode());
         repository.save(entity);

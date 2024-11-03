@@ -40,7 +40,7 @@ public class RequestEntity extends BaseEntity {
     @Column
     private LocalDateTime responseDate;
 
-    @Column
+    @Column(length = 1000)
     private String response;
 
 }
