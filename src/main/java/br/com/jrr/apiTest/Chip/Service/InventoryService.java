@@ -1,5 +1,6 @@
 package br.com.jrr.apiTest.Chip.Service;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -8,9 +9,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.google.gson.Gson;
+
 import br.com.jrr.apiTest.Chip.Entity.InventoryEntity;
+import br.com.jrr.apiTest.Chip.DTO.BuyRequestDTO;
+import br.com.jrr.apiTest.Chip.DTO.BuyResponseDTO;
 import br.com.jrr.apiTest.Chip.Entity.ChipEntity;
 import br.com.jrr.apiTest.Chip.Repository.InventoryRepository;
+import br.com.jrr.apiTest.Request.HttpDTO;
+import br.com.jrr.apiTest.Request.RequestService;
+import br.com.jrr.apiTest.Request.Enum.RequestMethod;
 import br.com.jrr.apiTest.Transaction.TransactionEntity;
 import br.com.jrr.apiTest.User.UserEntity;
 import br.com.jrr.apiTest.User.UserService;
@@ -24,15 +32,53 @@ public class InventoryService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private ChipService chipService;
+
+    @Autowired
+    private RequestService requestService;
+
+    @Autowired
+    private Gson gson;
+
     public Collection<InventoryEntity> findByCurrentUser() {
         UserEntity user = userService.getCurrentUser();
         return repository.findByUser(user);
     }
 
-    public InventoryEntity findByCurrentUser(ChipEntity chip) {
-        UserEntity user = userService.getCurrentUser();
+    public BuyResponseDTO buyChip(UUID chipId, int qnt) {
+        ChipEntity chip = chipService.findById(chipId);
+        InventoryEntity inventory = findByCurrentUser(chip);
+        BuyRequestDTO order = new BuyRequestDTO(
+            inventory.getId(),
+            chip.getDescription(),
+            qnt,
+            chip.getValue()
+        );
+        HttpDTO httpDTO = requestService.request("buy", RequestMethod.POST, order);
+        
+        if(httpDTO.statusCode() == 200) {
+            String json = httpDTO.jsonBody();
+            BuyResponseDTO orderResponse = gson.fromJson(json, BuyResponseDTO.class);
+            return orderResponse;
+        }
+
+        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    public InventoryEntity findByUser(UserEntity user, ChipEntity chip) {
         return repository.findByUser(user, chip)
             .orElseGet(() -> createEmptyInventory(user, chip));
+    }
+
+    public InventoryEntity findByCurrentUser(ChipEntity chip) {
+        UserEntity user = userService.getCurrentUser();
+        return findByUser(user, chip);
+    }
+
+    public InventoryEntity getCommomCoin(UserEntity user) {
+        ChipEntity commomCoin = chipService.getCommomCoin();
+        return findByUser(user, commomCoin);
     }
 
     public InventoryEntity findById(UUID id) {
@@ -41,6 +87,21 @@ public class InventoryService {
     }
 
     public InventoryEntity processTransaction(TransactionEntity transaction) {
+        InventoryEntity inventory = calculateInventory(transaction);
+        return repository.save(inventory);
+    }
+
+    public Collection<InventoryEntity> processTransactions(Collection<TransactionEntity> transactions) {
+        Collection<InventoryEntity> inventories = new ArrayList<>();
+        for (TransactionEntity transaction : transactions) {
+            InventoryEntity inventory = calculateInventory(transaction);
+            inventories.add(inventory);
+        }
+
+        return repository.saveAll(inventories);
+    }
+
+    private InventoryEntity calculateInventory(TransactionEntity transaction) {
         InventoryEntity inventory = transaction.getInventory();
         
         boolean plus = transaction.getType().plus;
@@ -48,7 +109,10 @@ public class InventoryService {
         int qnt = transaction.getQnt() * operation;
 
         inventory.plusQnt(qnt);
-        return repository.save(inventory);
+        if (inventory.getQnt() < 0)
+            throw new ResponseStatusException(HttpStatus.CONFLICT);
+            
+        return inventory;
     }
 
     private InventoryEntity createEmptyInventory(UserEntity user, ChipEntity chip) {

@@ -170,6 +170,14 @@ public class TeamService {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
+    public TeamJoinEntity setOpenToPlay(boolean openToPlay) {
+        TeamJoinEntity join = getCurrentTeam()
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+        
+        join.setOpenToPlay(openToPlay);
+        return joinRepository.save(join);
+    }
+
     private boolean sameTeam(UserEntity user1, UserEntity user2) {
 
         TeamJoinEntity join1 = findActiveByUser(user1).orElse(null);

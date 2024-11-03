@@ -31,6 +31,7 @@ import br.com.jrr.apiTest.User.UserService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
+import jakarta.websocket.server.PathParam;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -65,6 +66,13 @@ public class TeamController {
             .getTeam();
         
         return ResponseEntity.ok(teamMapper.toResponse(team));
+    }
+
+    @PutMapping("/current")
+    @RolesAllowed({"TEAM_MEMBER", "TEAM_CAPTAIN"})
+    public ResponseEntity<MemberResponseDTO> setOpenToPlay(@PathParam("openToPlay") boolean openToPlay) {
+        TeamJoinEntity entity = teamService.setOpenToPlay(openToPlay);
+        return ResponseEntity.ok(joinMapper.toMember(entity));
     }
 
     @GetMapping
