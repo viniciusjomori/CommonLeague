@@ -3,6 +3,8 @@ package br.com.jrr.apiTest.User;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -60,6 +62,21 @@ public class UserService {
         }
 
         return repository.save(entity);
+    }
+
+    public Page<UserEntity> findAll(int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        return repository.findAll(pageable);
+    }
+
+    public Page<UserEntity> findByNickname(String nickname, int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        return repository.findByNickname(nickname, pageable);
+    }
+
+    public UserEntity findByNickname(String nickname) {
+        return repository.findByNickname(nickname)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
 }
