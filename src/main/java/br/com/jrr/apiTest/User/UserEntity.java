@@ -10,6 +10,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import br.com.jrr.apiTest.Security.TokenEntity;
 import br.com.jrr.apiTest.Security.UserDetailsAdapter;
 import br.com.jrr.apiTest.Team.Entity.TeamJoinEntity;
+import br.com.jrr.apiTest.User.Enum.UserType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -45,6 +46,12 @@ public class UserEntity extends UserDetailsAdapter {
     
     @Column(nullable = false)
     private LocalDate birthday;
+
+    @Column()
+    private String imagePath;
+
+    @Column()
+    private String pixKey;
 
     @Column(nullable = false)
     private String password;

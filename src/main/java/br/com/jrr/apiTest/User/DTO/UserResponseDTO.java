@@ -9,5 +9,6 @@ public record UserResponseDTO(
     String nickname,
     String email,
     String fullName,
-    LocalDate birthday
+    LocalDate birthday,
+    String imagePath
 ) {}

@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import br.com.jrr.apiTest.User.DTO.UserRegisterDTO;
+import br.com.jrr.apiTest.User.DTO.UserUpdateDTO;
+import br.com.jrr.apiTest.User.Enum.UserType;
 
 @Service
 public class UserService {
@@ -44,6 +46,18 @@ public class UserService {
         entity.setPassword(password);
 
         entity.setRole(UserType.ROLE_CLIENT);
+
+        return repository.save(entity);
+    }
+
+    public UserEntity updateUser(UserUpdateDTO dto) {
+        UserEntity entity = getCurrentUser();
+        entity = mapper.updateUser(dto, entity);
+
+        if(dto.password() != null) {
+            String password = passwordEncoder.encode(dto.password());
+            entity.setPassword(password);
+        }
 
         return repository.save(entity);
     }

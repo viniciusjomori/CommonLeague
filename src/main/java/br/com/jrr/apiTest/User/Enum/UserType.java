@@ -1,4 +1,4 @@
-package br.com.jrr.apiTest.User;
+package br.com.jrr.apiTest.User.Enum;
 
 public enum UserType {
     ROLE_CLIENT,

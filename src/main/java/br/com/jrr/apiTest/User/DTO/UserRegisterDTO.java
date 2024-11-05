@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import org.hibernate.validator.constraints.br.CPF;
 
+import br.com.jrr.apiTest.User.Enum.UserProfile;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -28,6 +29,8 @@ public record UserRegisterDTO(
     LocalDate birthday,
 
     @NotBlank
-    String password
+    String password,
+
+    UserProfile profile
 
 ) {}

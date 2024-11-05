@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.jrr.apiTest.User.UserEntity;
 import br.com.jrr.apiTest.User.UserService;
 import br.com.jrr.apiTest.User.DTO.UserRegisterDTO;
+import br.com.jrr.apiTest.User.Enum.UserProfile;
 
 @SpringBootTest
 @TestInstance(Lifecycle.PER_CLASS)
@@ -39,7 +40,8 @@ public class BaseTest {
             "Full Name Test",
             "471.167.670-88",
             LocalDate.parse("1914-08-26"),
-            "test@123"
+            "test@123",
+            UserProfile.RED
         );
         user1 = userService.registerUser(register);
 
@@ -49,7 +51,8 @@ public class BaseTest {
             "Full Name Test 2",
             "520.190.330-46",
             LocalDate.parse("1915-08-26"),
-            "test@123"
+            "test@123",
+            UserProfile.BLUE
         );
         user2 = userService.registerUser(register2);
 
@@ -59,7 +62,8 @@ public class BaseTest {
             "Full Name Test 3",
             "152.107.280-99",
             LocalDate.parse("1916-08-26"),
-            "test@123"
+            "test@123",
+            UserProfile.YELLOW
         );
         user3 = userService.registerUser(register3);
 
@@ -69,7 +73,8 @@ public class BaseTest {
             "Full Name Test 4",
             "409.950.420-47",
             LocalDate.parse("1917-08-26"),
-            "test@123"
+            "test@123",
+            UserProfile.RED
         );
         user4 = userService.registerUser(register4);
 
@@ -79,7 +84,8 @@ public class BaseTest {
             "Full Name Test 5",
             "737.049.800-05",
             LocalDate.parse("1918-08-26"),
-            "test@123"
+            "test@123",
+            UserProfile.BLUE
         );
         user5 = userService.registerUser(register5);
 
@@ -89,7 +95,8 @@ public class BaseTest {
             "Full Name Test 6",
             "837.723.530-70",
             LocalDate.parse("1919-08-26"),
-            "test@123"
+            "test@123",
+            UserProfile.YELLOW
         );
         user6 = userService.registerUser(register6);
     } 
