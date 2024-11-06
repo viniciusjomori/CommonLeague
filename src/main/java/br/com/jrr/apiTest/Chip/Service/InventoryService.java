@@ -112,7 +112,7 @@ public class InventoryService {
         
         boolean plus = transaction.getType().plus;
         int operation = plus ? 1 : -1;
-        int qnt = transaction.getQnt() * operation;
+        int qnt = transaction.getChipsQty() * operation;
 
         inventory.plusQnt(qnt);
         if (inventory.getQnt() < 0)

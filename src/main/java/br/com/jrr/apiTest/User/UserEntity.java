@@ -2,9 +2,11 @@ package br.com.jrr.apiTest.User;
 
 import java.util.Collection;
 import java.util.Collections;
-
+import java.util.UUID;
 import java.time.LocalDate;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import br.com.jrr.apiTest.Security.TokenEntity;
@@ -15,6 +17,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -24,13 +29,19 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users_p2")
 @Getter
 @Setter
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserEntity extends UserDetailsAdapter {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "user_id", columnDefinition = "VARCHAR(36)")
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    private UUID id;
 
     @Column(unique = true, nullable = false)
     private String nickname;

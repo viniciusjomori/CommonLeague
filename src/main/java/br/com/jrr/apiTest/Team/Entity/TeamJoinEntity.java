@@ -1,6 +1,10 @@
 package br.com.jrr.apiTest.Team.Entity;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import br.com.jrr.apiTest.App.BaseEntity;
 import br.com.jrr.apiTest.Team.Enum.TeamJoinStatus;
@@ -10,6 +14,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -27,6 +34,11 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TeamJoinEntity extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    private UUID id;
     
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

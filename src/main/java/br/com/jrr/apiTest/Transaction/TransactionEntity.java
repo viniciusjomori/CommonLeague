@@ -1,5 +1,10 @@
 package br.com.jrr.apiTest.Transaction;
 
+import java.util.UUID;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import br.com.jrr.apiTest.App.BaseEntity;
 import br.com.jrr.apiTest.Chip.Entity.InventoryEntity;
 import br.com.jrr.apiTest.Transaction.Enum.TransactionStatus;
@@ -8,6 +13,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -19,13 +27,22 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "transactions")
+@Table(name = "transactions_p2")
 @Getter
 @Setter
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransactionEntity extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "transaction_id", columnDefinition = "VARCHAR(36)")
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    private UUID id;
+
+    @Column
+    private boolean active;
     
     @Column
     @Enumerated(EnumType.STRING)
@@ -41,6 +58,6 @@ public class TransactionEntity extends BaseEntity {
 
     @Column()
     @Min(value = 1)
-    private int qnt;
+    private int chipsQty;
 
 }

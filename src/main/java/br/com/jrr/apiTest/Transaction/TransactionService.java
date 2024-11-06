@@ -80,7 +80,7 @@ public class TransactionService {
             TransactionEntity transaction = TransactionEntity.builder()
                 .type(type)
                 .status(TransactionStatus.pending)
-                .qnt(qntChips)
+                .chipsQty(qntChips)
                 .inventory(inventory)
                 .build();
             transactions.add(transaction);

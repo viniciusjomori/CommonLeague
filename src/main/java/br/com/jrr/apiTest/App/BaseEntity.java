@@ -1,11 +1,7 @@
 package br.com.jrr.apiTest.App;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -24,28 +20,24 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 public abstract class BaseEntity {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
 
     private Boolean active;
 
     @Temporal(TemporalType.TIMESTAMP)
-    private LocalDateTime createDate;
+    private LocalDateTime creationDate;
 
     @Temporal(TemporalType.TIMESTAMP)
-    private LocalDateTime editDate;
+    private LocalDateTime updateDate;
 
     @PrePersist
     public void onPersist() {
-        this.setCreateDate(LocalDateTime.now());
+        this.setCreationDate(LocalDateTime.now());
         this.setActive(true);
     } 
 
     @PreUpdate
     public void onUpdate() {
-        this.setEditDate(LocalDateTime.now());
+        this.setUpdateDate(LocalDateTime.now());
     }
 
 }
