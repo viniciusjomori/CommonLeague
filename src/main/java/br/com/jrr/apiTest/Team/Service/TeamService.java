@@ -65,6 +65,10 @@ public class TeamService {
         return joinRepository.findActiveByUser(user);
     }
 
+    public Collection<TeamJoinEntity> findPendingByCurrentUser(){
+        return joinRepository.findPendingByUser(userService.getCurrentUser());
+    }
+
     public Collection<TeamJoinEntity> findActiveByTeam(TeamEntity team) {
         return joinRepository.findActiveByTeam(team);
     }

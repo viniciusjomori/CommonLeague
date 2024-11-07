@@ -85,6 +85,15 @@ public class TournamentService {
         return joinRepository.findOpenByTeam(team)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
+
+    public TournamentJoinEntity getCurrentActiveJoin(){
+        TeamEntity team = teamService.getCurrentTeam()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN))
+                .getTeam();
+
+        return joinRepository.findActiveByTeam(team)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
     
     public TournamentJoinEntity cancelJoin() {
         TournamentJoinEntity tournamentJoin = getCurrentJoin();

@@ -16,6 +16,9 @@ public interface TeamJoinRepository extends JpaRepository<TeamJoinEntity, UUID> 
     @Query("SELECT j FROM TeamJoinEntity j WHERE j.user = :user AND joinStatus = 'ACTIVE' AND j.active = true")
     Optional<TeamJoinEntity> findActiveByUser(UserEntity user);
 
+    @Query("SELECT j FROM TeamJoinEntity j WHERE j.user = :user AND j.joinStatus = 'PENDING' AND j.active = true")
+    Collection<TeamJoinEntity> findPendingByUser(UserEntity user);
+
     @Query("SELECT j FROM TeamJoinEntity j WHERE j.team = :team AND joinStatus = 'ACTIVE' AND j.active = true")
     Collection<TeamJoinEntity> findActiveByTeam(TeamEntity team);
 
