@@ -2,6 +2,8 @@ package br.com.jrr.apiTest.Chip.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +20,9 @@ import br.com.jrr.apiTest.Chip.DTO.BuyResponseDTO;
 import br.com.jrr.apiTest.Chip.Entity.ChipEntity;
 import br.com.jrr.apiTest.Chip.Repository.InventoryRepository;
 import br.com.jrr.apiTest.Request.HttpDTO;
-import br.com.jrr.apiTest.Request.RequestService;
 import br.com.jrr.apiTest.Request.Enum.RequestMethod;
+import br.com.jrr.apiTest.Request.Service.RequestService;
+import br.com.jrr.apiTest.Request.Service.RequestSignatureService;
 import br.com.jrr.apiTest.Transaction.TransactionEntity;
 import br.com.jrr.apiTest.User.UserEntity;
 import br.com.jrr.apiTest.User.UserService;
@@ -42,6 +45,9 @@ public class InventoryService {
     @Autowired
     private Gson gson;
 
+    @Autowired
+    private RequestSignatureService signatureService;
+
     @Value("${commonleague-pay.base-dns}")
     private String baseEndpoint;
 
@@ -61,7 +67,18 @@ public class InventoryService {
         );
         String endpoint = baseEndpoint + "buychips";
 
-        HttpDTO httpDTO = requestService.request(endpoint, RequestMethod.POST, order);
+        Map<String, String> headers = new HashMap<>();
+
+        String xRequestId = UUID.randomUUID().toString();
+        String xSignature = signatureService.generateSignature(
+            xRequestId,
+            inventory.getId().toString()
+        );
+
+        headers.put("x-signature", xSignature);
+        headers.put("x-request-id", xRequestId);
+
+        HttpDTO httpDTO = requestService.request(endpoint, RequestMethod.POST, order, headers);
         
         if(httpDTO.statusCode() == 200) {
             String json = httpDTO.jsonBody();

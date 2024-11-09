@@ -11,8 +11,8 @@ import org.springframework.web.server.ResponseStatusException;
 import com.google.gson.Gson;
 
 import br.com.jrr.apiTest.Request.HttpDTO;
-import br.com.jrr.apiTest.Request.RequestService;
 import br.com.jrr.apiTest.Request.Enum.RequestMethod;
+import br.com.jrr.apiTest.Request.Service.RequestService;
 import br.com.jrr.apiTest.RiotAccount.DTO.RiotAccConnectDTO;
 import br.com.jrr.apiTest.RiotAccount.DTO.RiotAccFromApiDTO;
 import br.com.jrr.apiTest.RiotAccount.Strategy.IRiotAccError;
