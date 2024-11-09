@@ -6,10 +6,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
+import br.com.jrr.apiTest.App.Exceptions.ConflictException;
+import br.com.jrr.apiTest.App.Exceptions.NotFoundException;
 import br.com.jrr.apiTest.Chip.Entity.InventoryEntity;
 import br.com.jrr.apiTest.Chip.Service.InventoryService;
 import br.com.jrr.apiTest.Team.Entity.TeamJoinEntity;
@@ -45,7 +45,7 @@ public class TransactionService {
 
         for(InventoryEntity inventory : inventories) {
             if(inventory.getQnt() < qntChips)
-                throw new ResponseStatusException(HttpStatus.CONFLICT);
+                throw new ConflictException("Someone on your team doesn't have enough chips");
         }
         
         createNewTransactions(inventories, qntChips, TransactionType.CREATE_TOURNAMENT);
@@ -71,7 +71,7 @@ public class TransactionService {
 
     private TransactionEntity findById(UUID id) {
         return repository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new NotFoundException("Transaction not found"));
     }
 
     private void createNewTransactions(Collection<InventoryEntity> inventories, int qntChips, TransactionType type) {

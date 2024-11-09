@@ -4,10 +4,9 @@ import java.util.Collection;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
+import br.com.jrr.apiTest.App.Exceptions.NotFoundException;
 import br.com.jrr.apiTest.Chip.Entity.ChipEntity;
 import br.com.jrr.apiTest.Chip.Repository.ChipRepository;
 @Service
@@ -22,7 +21,7 @@ public class ChipService {
 
     public ChipEntity findById(UUID id) {
         return repository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new NotFoundException("Chip not found"));
     }
 
     public ChipEntity getCommomCoin() {

@@ -10,6 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.google.gson.Gson;
 
+import br.com.jrr.apiTest.App.Exceptions.NotFoundException;
 import br.com.jrr.apiTest.Request.HttpDTO;
 import br.com.jrr.apiTest.Request.Enum.RequestMethod;
 import br.com.jrr.apiTest.Request.Service.RequestService;
@@ -80,13 +81,12 @@ public class RiotAccService {
 
     public RiotAccEntity findByUser(UserEntity user) {
         return repository.findActiveByUser(user)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new NotFoundException("No Riot Account connected"));
     }
 
     public RiotAccEntity findCurrentAccount() {
         UserEntity user = userService.getCurrentUser();
-        return repository.findActiveByUser(user)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        return findByUser(user);
     }
 
     private void validateResponse(HttpDTO dto) {

@@ -1,6 +1,8 @@
 package br.com.jrr.apiTest.Tournament;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,6 +11,8 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import br.com.jrr.apiTest.App.Exceptions.BadRequestException;
+import br.com.jrr.apiTest.App.Exceptions.ForbiddenException;
 import br.com.jrr.apiTest.Team.Entity.TeamEntity;
 import br.com.jrr.apiTest.Team.Entity.TeamJoinEntity;
 import br.com.jrr.apiTest.Team.Service.TeamService;
@@ -18,6 +22,7 @@ import br.com.jrr.apiTest.Tournament.Enum.TournamentJoinStatus;
 import br.com.jrr.apiTest.Tournament.Enum.TournamentStatus;
 import br.com.jrr.apiTest.Tournament.Repository.TournamentJoinRepository;
 import br.com.jrr.apiTest.Tournament.Repository.TournamentRepository;
+import br.com.jrr.apiTest.Tournament.Strategy.IMembersValidation;
 import br.com.jrr.apiTest.Transaction.TransactionService;
 
 @Service
@@ -35,22 +40,24 @@ public class TournamentService {
     @Autowired
     private TransactionService transactionService;
 
+    @Autowired
+    private List<IMembersValidation> validations;
+
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public TournamentJoinEntity joinTournament(int qntChips) {
         if(qntChips <= 0)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new BadRequestException("Qnt cannot be 0 or negative");
 
         TeamEntity team = teamService.getCurrentTeam()
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN))
+            .orElseThrow(() -> new ForbiddenException("You are not on a team"))
             .getTeam();
 
         joinRepository.findOpenByTeam(team)
-            .ifPresent(j -> { throw new ResponseStatusException(HttpStatus.BAD_REQUEST); });
+            .ifPresent(j -> { throw new BadRequestException("Your team is already in a tournament"); });
         
         Collection<TeamJoinEntity> members = teamService.findActiveByTeam(team);
         
-        if (!isOpenToPlay(members))
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        validateMembers(members);
 
         transactionService.createForTournament(members, qntChips);
 
@@ -121,6 +128,18 @@ public class TournamentService {
                 }
             }
         }
+    }
+
+    private void validateMembers(Collection<TeamJoinEntity> members) {
+        List<String> errors = new ArrayList<>();
+
+        for (IMembersValidation validation : validations) {
+            if(!validation.validate(members))
+                errors.add(validation.getMessage());
+        }
+
+        if (!errors.isEmpty())
+            throw new BadRequestException(errors);
     }
 
     private TournamentEntity findOpenByQntChips(int qntChipPerPlayer) {

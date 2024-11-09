@@ -8,13 +8,14 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.google.gson.Gson;
 
 import br.com.jrr.apiTest.Chip.Entity.InventoryEntity;
+import br.com.jrr.apiTest.App.Exceptions.ConflictException;
+import br.com.jrr.apiTest.App.Exceptions.InternalServerErrorException;
+import br.com.jrr.apiTest.App.Exceptions.NotFoundException;
 import br.com.jrr.apiTest.Chip.DTO.BuyRequestDTO;
 import br.com.jrr.apiTest.Chip.DTO.BuyResponseDTO;
 import br.com.jrr.apiTest.Chip.Entity.ChipEntity;
@@ -86,7 +87,7 @@ public class InventoryService {
             return orderResponse;
         }
 
-        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        throw new InternalServerErrorException();
     }
 
     public InventoryEntity findByUser(UserEntity user, ChipEntity chip) {
@@ -106,7 +107,7 @@ public class InventoryService {
 
     public InventoryEntity findById(UUID id) {
         return repository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new NotFoundException("Inventory not found"));
     }
 
     public InventoryEntity processTransaction(TransactionEntity transaction) {
@@ -133,7 +134,7 @@ public class InventoryService {
 
         inventory.plusQnt(qnt);
         if (inventory.getQnt() < 0)
-            throw new ResponseStatusException(HttpStatus.CONFLICT);
+            throw new ConflictException("Qnt cannot be negative");
             
         return inventory;
     }
