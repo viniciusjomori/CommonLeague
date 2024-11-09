@@ -3,12 +3,11 @@ package br.com.jrr.apiTest.Team.DTO;
 import java.util.UUID;
 
 import br.com.jrr.apiTest.Team.Enum.TeamJoinStatus;
-import br.com.jrr.apiTest.Team.Enum.TeamRoleName;
 
-public record MemberResponseDTO(
+public record InviteResponseDTO(
+    UUID inviteId,
+    UUID teamId,
     UUID userId,
-    boolean openToPlay,
-    TeamRoleName role,
     TeamJoinStatus status
 ) {
     

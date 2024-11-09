@@ -1,6 +1,7 @@
 package br.com.jrr.apiTest.Tournament;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.jrr.apiTest.App.ResponseDTO;
 import br.com.jrr.apiTest.Tournament.Entity.TournamentJoinEntity;
 import br.com.jrr.apiTest.Tournament.Mapper.TournamentJoinMapper;
 import jakarta.annotation.security.RolesAllowed;
@@ -43,9 +45,10 @@ public class TournamentController {
 
     @DeleteMapping
     @RolesAllowed({"TEAM_CAPTAIN"})
-    public ResponseEntity<Void> cancelTournamentJoin() {
+    public ResponseEntity<ResponseDTO> cancelTournamentJoin() {
         service.cancelJoin();
-        return ResponseEntity.noContent().build();
+        ResponseDTO response = new ResponseDTO(HttpStatus.OK, "Join Tournament Cancelled");
+        return ResponseEntity.ok(response);
     }
 
 }

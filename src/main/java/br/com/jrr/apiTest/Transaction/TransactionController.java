@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import br.com.jrr.apiTest.App.ResponseDTO;
 import br.com.jrr.apiTest.Request.Service.RequestSignatureService;
 
 @RestController
@@ -28,7 +29,7 @@ public class TransactionController {
     private RequestSignatureService signatureService;
 
     @PostMapping("{id}/process")
-    public ResponseEntity<Void> processTransaction(@RequestHeader HttpHeaders headers, @PathVariable UUID id) {
+    public ResponseEntity<ResponseDTO> processTransaction(@RequestHeader HttpHeaders headers, @PathVariable UUID id) {
         
         String xSignature = headers.getFirst("x-signature");
         String xRequestId = headers.getFirst("x-request-id");
@@ -39,7 +40,9 @@ public class TransactionController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         
         service.processTransaction(id);
-        return ResponseEntity.noContent().build();
+
+        ResponseDTO response = new ResponseDTO(HttpStatus.OK, "Transactions processed succesfully");
+        return ResponseEntity.ok(response);
     }
 
 }
