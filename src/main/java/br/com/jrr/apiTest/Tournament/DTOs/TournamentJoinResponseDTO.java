@@ -1,4 +1,4 @@
-package br.com.jrr.apiTest.Tournament;
+package br.com.jrr.apiTest.Tournament.DTOs;
 
 import java.util.UUID;
 

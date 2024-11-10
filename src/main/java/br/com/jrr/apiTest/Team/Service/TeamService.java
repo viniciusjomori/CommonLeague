@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import br.com.jrr.apiTest.App.Exceptions.BadRequestException;
+import br.com.jrr.apiTest.RiotAccount.RiotAccEntity;
+import br.com.jrr.apiTest.RiotAccount.RiotAccService;
 import br.com.jrr.apiTest.Team.DTO.TeamRegisterDTO;
 import br.com.jrr.apiTest.Team.Entity.TeamEntity;
 import br.com.jrr.apiTest.Team.Entity.TeamJoinEntity;
@@ -40,6 +42,9 @@ public class TeamService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private RiotAccService riotService;
 
     @Autowired
     private List<ITeamValidation> validations;
@@ -181,6 +186,15 @@ public class TeamService {
         
         join.setOpenToPlay(openToPlay);
         return joinRepository.save(join);
+    }
+
+    public Collection<RiotAccEntity> findRiotAccByTeam(TeamEntity team) {
+        Collection<TeamJoinEntity> members = findActiveByTeam(team);
+        Collection<UserEntity> users = members.stream()
+            .map(TeamJoinEntity::getUser)
+            .toList();
+        
+        return riotService.findByUsers(users);
     }
 
     private TeamEntity saveTeam(TeamEntity team) {

@@ -3,8 +3,10 @@ package br.com.jrr.apiTest.Tournament;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -12,10 +14,20 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import br.com.jrr.apiTest.App.Exceptions.BadRequestException;
+import br.com.jrr.apiTest.App.Exceptions.ConflictException;
 import br.com.jrr.apiTest.App.Exceptions.ForbiddenException;
+import br.com.jrr.apiTest.App.Exceptions.InternalServerErrorException;
+import br.com.jrr.apiTest.App.Exceptions.NotFoundException;
+import br.com.jrr.apiTest.Request.HttpDTO;
+import br.com.jrr.apiTest.Request.Enum.RequestMethod;
+import br.com.jrr.apiTest.Request.Service.RequestService;
+import br.com.jrr.apiTest.RiotAccount.RiotAccEntity;
 import br.com.jrr.apiTest.Team.Entity.TeamEntity;
 import br.com.jrr.apiTest.Team.Entity.TeamJoinEntity;
 import br.com.jrr.apiTest.Team.Service.TeamService;
+import br.com.jrr.apiTest.Tournament.DTOs.ProviderRequestDTO;
+import br.com.jrr.apiTest.Tournament.DTOs.TournamentCodeRegisterDTO;
+import br.com.jrr.apiTest.Tournament.DTOs.TournamentConnectDTO;
 import br.com.jrr.apiTest.Tournament.Entity.TournamentEntity;
 import br.com.jrr.apiTest.Tournament.Entity.TournamentJoinEntity;
 import br.com.jrr.apiTest.Tournament.Enum.TournamentJoinStatus;
@@ -41,7 +53,16 @@ public class TournamentService {
     private TransactionService transactionService;
 
     @Autowired
+    private RequestService requestService;
+
+    @Autowired
     private List<IMembersValidation> validations;
+
+    @Value("${lol.api-key}")
+    private String apiKey;
+
+    @Value("${lol.base-dns}")
+    private String baseDns;
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public TournamentJoinEntity joinTournament(int qntChips) {
@@ -110,24 +131,28 @@ public class TournamentService {
         return joinRepository.save(tournamentJoin);
     }
 
-    protected void startTournaments() {
-        Collection<TournamentEntity> tournaments = tournamentRepository
-            .findAllByStatus(TournamentStatus.PENDING);
-
-        for (TournamentEntity tournament : tournaments) {
-            Collection<TournamentJoinEntity> joins = joinRepository
-                .findActiveByTournament(tournament);
-
-            if(joins.size() == 4) {
-                tournament.setStatus(TournamentStatus.IN_PROGRESS);
-                tournamentRepository.save(tournament);
-            
-                for (TournamentJoinEntity join : joins) {
-                    join.setStatus(TournamentJoinStatus.PLAYING);
-                    joinRepository.save(join);
-                }
-            }
+    public void startTournament(TournamentEntity tournament) {
+        Collection<TournamentJoinEntity> joins = joinRepository.findActiveByTournament(tournament);
+        validateTournament(joins);
+        
+        int providerId = requestProviderId(tournament);
+        String tournamentRiotId = requestTournament(tournament, providerId);
+        requestTournamentCode(joins, providerId);
+        
+        tournament.setStatus(TournamentStatus.IN_PROGRESS);
+        tournament.setRiotId(tournamentRiotId);
+        tournamentRepository.save(tournament);
+        
+        for (TournamentJoinEntity join : joins) {
+            join.setStatus(TournamentJoinStatus.PLAYING);
+            joinRepository.save(join);
         }
+        
+    }
+
+    public TournamentEntity findById(UUID id) {
+        return tournamentRepository.findById(id)
+            .orElseThrow(() -> new NotFoundException("Tournament not found"));
     }
 
     private void validateMembers(Collection<TeamJoinEntity> members) {
@@ -147,6 +172,13 @@ public class TournamentService {
             .orElseGet(() -> registerNewTournament(qntChipPerPlayer));
     }
     
+    private void validateTournament(Collection<TournamentJoinEntity> joins) {
+        int size = joins.size();
+        double log2 = Math.log(size) / Math.log(2);
+        if(!(log2 == (int) log2))
+            throw new ConflictException("Tournament cannot start");
+    }
+
     private TournamentEntity registerNewTournament(int qntChipPerPlayer) {
         TournamentEntity tournament = TournamentEntity.builder()
             .qntChipsPerPlayer(qntChipPerPlayer)
@@ -155,5 +187,68 @@ public class TournamentService {
         return tournamentRepository.save(tournament);
     }
     
+    private int requestProviderId(TournamentEntity tournament) {
+        ProviderRequestDTO request = new ProviderRequestDTO(
+            "BR", 
+            "http://localhost:8080/match?tournament=" + tournament.getId().toString()
+        );
+
+        String endpoint = baseDns + "lol/tournament-stub/v5/providers?api_key=" + apiKey;
+        HttpDTO response = requestService.request(endpoint, RequestMethod.POST, request);
+
+        if(response.statusCode() == 200)
+            return Integer.parseInt(response.jsonBody());
+        
+        throw new InternalServerErrorException();
+    }
+
+    private String requestTournament(TournamentEntity entity, int providerId) {
+        TournamentConnectDTO request = new TournamentConnectDTO(entity.getId().toString(), providerId);
+        
+        String endpoint = baseDns + "lol/tournament-stub/v5/tournaments?api_key=" + apiKey;
+        HttpDTO response = requestService.request(endpoint, RequestMethod.POST, request);
+
+        if(response.statusCode() == 200)
+            return response.jsonBody();
+        
+        throw new InternalServerErrorException();
+    }
+
+    private String requestTournamentCode(Collection<TournamentJoinEntity> joins, int riotId) {
+        Collection<String> puuids = joins.stream()
+            .map(join -> teamService.findRiotAccByTeam(join.getTeam()))
+            .flatMap(Collection::stream)
+            .map(RiotAccEntity::getPuuid)
+            .toList();
+
+        String metadata = "";
+        int teamSize = puuids.size() / joins.size();
+        String pickType = "BLIND_PICK";
+        String mapType = "SUMMONERS_RIFT";
+        String spectatorType = "ALL";
+        boolean enoughPlayers = true;
+
+        TournamentCodeRegisterDTO request = new TournamentCodeRegisterDTO(
+            puuids,
+            metadata,
+            teamSize,
+            pickType,
+            enoughPlayers,
+            spectatorType,
+            mapType
+        );
+
+        int numberOfMatchs = joins.size() -1;
+        String endpoint = baseDns + "lol/tournament-stub/v5/codes?count=" + numberOfMatchs + "1&tournamentId=" + riotId + "&api_key=" + apiKey;
+
+        HttpDTO response = requestService.request(endpoint, RequestMethod.POST, request);
+
+        if(response.statusCode() == 200) {
+            return response.jsonBody();
+        }
+
+        throw new InternalServerErrorException();
+
+    }
 
 }

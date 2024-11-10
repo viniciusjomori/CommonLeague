@@ -1,17 +1,22 @@
 package br.com.jrr.apiTest.Tournament;
 
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.jrr.apiTest.App.ResponseDTO;
+import br.com.jrr.apiTest.Tournament.DTOs.TournamentJoinResponseDTO;
+import br.com.jrr.apiTest.Tournament.Entity.TournamentEntity;
 import br.com.jrr.apiTest.Tournament.Entity.TournamentJoinEntity;
 import br.com.jrr.apiTest.Tournament.Mapper.TournamentJoinMapper;
 import jakarta.annotation.security.RolesAllowed;
@@ -48,6 +53,15 @@ public class TournamentController {
     public ResponseEntity<ResponseDTO> cancelTournamentJoin() {
         service.cancelJoin();
         ResponseDTO response = new ResponseDTO(HttpStatus.OK, "Join Tournament Cancelled");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("{id}/start")
+    @RolesAllowed("ADMIN")
+    public ResponseEntity<ResponseDTO> startTournament(@PathVariable UUID id) {
+        TournamentEntity tournament = service.findById(id);
+        service.startTournament(tournament);
+        ResponseDTO response = new ResponseDTO(HttpStatus.OK, "Tournament started");
         return ResponseEntity.ok(response);
     }
 

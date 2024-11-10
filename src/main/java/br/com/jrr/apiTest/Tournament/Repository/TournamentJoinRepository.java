@@ -19,4 +19,7 @@ public interface TournamentJoinRepository extends JpaRepository<TournamentJoinEn
     @Query("SELECT j FROM TournamentJoinEntity j WHERE j.tournament = :tournament AND j.status = 'WAITING' AND j.active = true")
     Collection<TournamentJoinEntity> findActiveByTournament(TournamentEntity tournament);
 
+    @Query("SELECT count(j) FROM TournamentJoinEntity j WHERE j.tournament = :tournament AND j.status = 'WAITING' AND j.active = true")
+    int countWaitingByTournament(TournamentEntity tournament);
+
 }

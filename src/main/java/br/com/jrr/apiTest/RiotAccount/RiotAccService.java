@@ -1,5 +1,6 @@
 package br.com.jrr.apiTest.RiotAccount;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,6 +90,10 @@ public class RiotAccService {
         return findByUser(user);
     }
 
+    public Collection<RiotAccEntity> findByUsers(Collection<UserEntity> users) {
+        return repository.findActiveByUsers(users);
+    }
+
     private void validateResponse(HttpDTO dto) {
         if (dto.statusCode() == 200) return;
     
@@ -106,7 +111,7 @@ public class RiotAccService {
     private String getEndpoint(String tagLine, String gameName) {
         StringBuilder sb = new StringBuilder();
         sb.append(baseDns);
-        sb.append("account/v1/accounts/by-riot-id/");
+        sb.append("lol/account/v1/accounts/by-riot-id/");
         sb.append(tagLine);
         sb.append("/");
         sb.append(gameName);
