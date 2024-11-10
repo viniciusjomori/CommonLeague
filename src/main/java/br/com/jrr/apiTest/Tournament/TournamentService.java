@@ -239,7 +239,7 @@ public class TournamentService {
         );
 
         int numberOfMatchs = joins.size() -1;
-        String endpoint = baseDns + "lol/tournament-stub/v5/codes?count=" + numberOfMatchs + "1&tournamentId=" + riotId + "&api_key=" + apiKey;
+        String endpoint = baseDns + "lol/tournament-stub/v5/codes?count=" + numberOfMatchs + "&tournamentId=" + riotId + "&api_key=" + apiKey;
 
         HttpDTO response = requestService.request(endpoint, RequestMethod.POST, request);
 
