@@ -55,6 +55,9 @@ public class TournamentEntity extends BaseEntity {
     @Column
     private LocalDateTime startDate;
 
+    @Column
+    private LocalDateTime endDate;
+
     @OneToMany(mappedBy = "tournament")
     private Collection<TournamentJoinEntity> joins;
 

@@ -40,7 +40,7 @@ public class TransactionService {
         inventoryService.processTransactions(transactions);
     }
 
-    public void createForTournament(Collection<TeamJoinEntity> members, int qntChips) {        
+    public void createForTournament(Collection<TeamJoinEntity> members, int qntChips, TournamentEntity tournament) {        
         Collection<InventoryEntity> inventories = findMembersInventories(members);
 
         for(InventoryEntity inventory : inventories) {
@@ -48,13 +48,24 @@ public class TransactionService {
                 throw new ConflictException("Someone on your team doesn't have enough chips");
         }
         
-        createNewTransactions(inventories, qntChips, TransactionType.CREATE_TOURNAMENT);
+        createNewTransactions(inventories, qntChips, TransactionType.CREATE_TOURNAMENT, tournament);
 
     }
 
     public void refundTournament(Collection<TeamJoinEntity> members, TournamentEntity tournament) {
         Collection<InventoryEntity> inventories = findMembersInventories(members);
         createNewTransactions(inventories, tournament.getQntChipsPerPlayer(), TransactionType.REFUND_TOURNAMENT);
+    }
+
+    public void rewardTournament(TournamentEntity tournament, Collection<TeamJoinEntity> winners, Collection<TeamJoinEntity> losers) {
+        int qntChipPerPlayer = tournament.getQntChipsPerPlayer();
+        int tournamentSize = losers.size() + winners.size();
+        double amountChips = qntChipPerPlayer * tournamentSize * 0.85;
+
+        int rewardPerPlayer = (int) Math.ceil(amountChips / winners.size());
+
+        Collection<InventoryEntity> inventories = findMembersInventories(winners);
+        createNewTransactions(inventories, rewardPerPlayer, TransactionType.WIN_TOURNAMENT);
     }
 
     private Collection<InventoryEntity> findMembersInventories(Collection<TeamJoinEntity> members) {
@@ -75,13 +86,18 @@ public class TransactionService {
     }
 
     private void createNewTransactions(Collection<InventoryEntity> inventories, int qntChips, TransactionType type) {
+        createNewTransactions(inventories, qntChips, type, null);
+    }
+
+    private void createNewTransactions(Collection<InventoryEntity> inventories, int qntChips, TransactionType type, TournamentEntity tournament) {
         Collection<TransactionEntity> transactions = new ArrayList<>();
         for (InventoryEntity inventory : inventories) {
             TransactionEntity transaction = TransactionEntity.builder()
                 .type(type)
-                .status(TransactionStatus.pending)
+                .status(TransactionStatus.approved)
                 .chipsQty(qntChips)
                 .inventory(inventory)
+                .tournament(tournament)
                 .build();
             transactions.add(transaction);
         }

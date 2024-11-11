@@ -16,4 +16,7 @@ public interface RiotAccRepository extends JpaRepository<RiotAccEntity, UUID> {
 
     @Query("SELECT l FROM RiotAccEntity l WHERE l.user IN :users AND l.active = true")
     Collection<RiotAccEntity> findActiveByUsers(Collection<UserEntity> users);
+
+    @Query("SELECT l FROM RiotAccEntity l WHERE l.puuid IN :riotIds AND l.active = true")
+    Collection<RiotAccEntity> findActiveByRiotIds(Collection<String> riotIds);
 }

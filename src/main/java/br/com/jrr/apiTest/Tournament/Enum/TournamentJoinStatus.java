@@ -5,6 +5,7 @@ public enum TournamentJoinStatus {
     WAITING,
     LEFT,
     PLAYING,
-    FINISHED
+    WIN,
+    LOSE
 
 }

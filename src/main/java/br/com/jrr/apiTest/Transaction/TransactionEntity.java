@@ -7,6 +7,7 @@ import org.hibernate.type.SqlTypes;
 
 import br.com.jrr.apiTest.App.BaseEntity;
 import br.com.jrr.apiTest.Chip.Entity.InventoryEntity;
+import br.com.jrr.apiTest.Tournament.Entity.TournamentEntity;
 import br.com.jrr.apiTest.Transaction.Enum.TransactionStatus;
 import br.com.jrr.apiTest.Transaction.Enum.TransactionType;
 import jakarta.persistence.Column;
@@ -40,9 +41,6 @@ public class TransactionEntity extends BaseEntity {
     @Column(name = "transaction_id", columnDefinition = "VARCHAR(36)")
     @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID id;
-
-    @Column
-    private boolean active;
     
     @Column
     @Enumerated(EnumType.STRING)
@@ -55,6 +53,10 @@ public class TransactionEntity extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "inventory_id", nullable = false)
     private InventoryEntity inventory;
+
+    @ManyToOne
+    @JoinColumn(name = "tournament_id", nullable = false)
+    private TournamentEntity tournament;
 
     @Column()
     @Min(value = 1)

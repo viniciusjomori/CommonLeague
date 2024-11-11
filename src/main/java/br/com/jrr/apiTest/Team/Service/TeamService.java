@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import br.com.jrr.apiTest.App.Exceptions.BadRequestException;
+import br.com.jrr.apiTest.App.Exceptions.NotFoundException;
 import br.com.jrr.apiTest.RiotAccount.RiotAccEntity;
 import br.com.jrr.apiTest.RiotAccount.RiotAccService;
 import br.com.jrr.apiTest.Team.DTO.TeamRegisterDTO;
@@ -77,6 +78,10 @@ public class TeamService {
 
     public Collection<TeamJoinEntity> findActiveByTeam(TeamEntity team) {
         return joinRepository.findActiveByTeam(team);
+    }
+
+    public Collection<TeamJoinEntity> findActiveByUsers(Collection<UserEntity> users) {
+        return joinRepository.findActiveByUsers(users);
     }
 
     public Optional<TeamJoinEntity> getCurrentTeam() {
@@ -195,6 +200,21 @@ public class TeamService {
             .toList();
         
         return riotService.findByUsers(users);
+    }
+
+    public TeamEntity findByRiotIds(List<String> userRiotIds) {
+        List<TeamEntity> teams = riotService.findByRiotIds(userRiotIds).stream()
+            .map(RiotAccEntity::getUser)
+            .flatMap(user -> findActiveByUser(user).stream())
+            .map(TeamJoinEntity::getTeam)
+            .distinct()
+            .toList();
+
+        if (teams.size() == 1 && teams.get(0) != null) {
+            return teams.get(0);
+        }
+        
+        throw new NotFoundException("Team not found");
     }
 
     private TeamEntity saveTeam(TeamEntity team) {

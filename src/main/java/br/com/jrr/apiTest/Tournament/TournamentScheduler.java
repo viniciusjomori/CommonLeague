@@ -23,8 +23,8 @@ public class TournamentScheduler {
 
     @Scheduled(cron = "0 0 * * * ?")
     public void createTournament() {
-        Collection<TournamentEntity> tournaments = repository.findAllByStatus(TournamentStatus.PENDING);
-        for (TournamentEntity tournament : tournaments) {
+        Collection<TournamentEntity> pendingTournament = repository.findAllByStatus(TournamentStatus.PENDING);
+        for (TournamentEntity tournament : pendingTournament) {
             service.startTournament(tournament);
         }
     }

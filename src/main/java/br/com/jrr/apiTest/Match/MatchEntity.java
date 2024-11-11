@@ -1,19 +1,23 @@
 package br.com.jrr.apiTest.Match;
 
-import java.util.Collection;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import br.com.jrr.apiTest.App.BaseEntity;
+import br.com.jrr.apiTest.Match.Enums.MatchStatus;
 import br.com.jrr.apiTest.Tournament.Entity.TournamentJoinEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -35,10 +39,23 @@ public class MatchEntity extends BaseEntity {
     @Column(name = "match_id", columnDefinition = "VARCHAR(36)")
     @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID id;
-    
-    @ManyToMany(mappedBy = "matches")
-    private Collection<TournamentJoinEntity> joins;
 
-    private String idRiot;
+    @Column
+    @Enumerated(EnumType.STRING)
+    private MatchStatus status;
+
+    @ManyToOne
+    @JoinColumn(name = "join_1_id", nullable = false)
+    private TournamentJoinEntity join1;
+
+    @ManyToOne
+    @JoinColumn(name = "join_2_id", nullable = false)
+    private TournamentJoinEntity join2;
+
+    @Column
+    private LocalDateTime startDate;
+
+    @Column
+    private String riotId;
 
 }

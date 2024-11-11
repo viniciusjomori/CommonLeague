@@ -94,6 +94,10 @@ public class RiotAccService {
         return repository.findActiveByUsers(users);
     }
 
+    public Collection<RiotAccEntity> findByRiotIds(Collection<String> riotIds) {
+        return repository.findActiveByRiotIds(riotIds);
+    }
+
     private void validateResponse(HttpDTO dto) {
         if (dto.statusCode() == 200) return;
     
