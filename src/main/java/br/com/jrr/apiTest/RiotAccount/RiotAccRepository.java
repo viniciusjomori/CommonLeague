@@ -19,4 +19,7 @@ public interface RiotAccRepository extends JpaRepository<RiotAccEntity, UUID> {
 
     @Query("SELECT l FROM RiotAccEntity l WHERE l.puuid IN :riotIds AND l.active = true")
     Collection<RiotAccEntity> findActiveByRiotIds(Collection<String> riotIds);
+
+    @Query("SELECT l FROM RiotAccEntity l WHERE l.gameName = :gameName AND tagLine = :tagLine AND l.active = true")
+    Optional<RiotAccEntity> findByPlayerInfo(String gameName, String tagLine);
 }

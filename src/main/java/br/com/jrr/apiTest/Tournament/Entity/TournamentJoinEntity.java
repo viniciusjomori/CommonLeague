@@ -9,8 +9,10 @@ import org.hibernate.type.SqlTypes;
 import br.com.jrr.apiTest.App.BaseEntity;
 import br.com.jrr.apiTest.Team.Entity.TeamEntity;
 import br.com.jrr.apiTest.Tournament.Enum.TournamentJoinStatus;
+import br.com.jrr.apiTest.Tournament.Listeners.TournamentJoinListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -32,6 +34,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EntityListeners(TournamentJoinListener.class)
 public class TournamentJoinEntity extends BaseEntity {
 
     @Id

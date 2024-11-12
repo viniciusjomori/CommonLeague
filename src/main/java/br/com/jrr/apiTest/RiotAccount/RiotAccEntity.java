@@ -45,6 +45,9 @@ public class RiotAccEntity extends BaseEntity {
     @Column
     private String puuid;
 
+    @Column
+    private boolean enableToChange;
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;

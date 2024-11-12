@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.google.gson.Gson;
 
+import br.com.jrr.apiTest.App.Exceptions.BadRequestException;
 import br.com.jrr.apiTest.App.Exceptions.NotFoundException;
 import br.com.jrr.apiTest.Request.HttpDTO;
 import br.com.jrr.apiTest.Request.Enum.RequestMethod;
@@ -46,6 +47,9 @@ public class RiotAccService {
     private String baseDns;
 
     public RiotAccEntity connect(RiotAccConnectDTO dto) {
+        repository.findByPlayerInfo(dto.gameName(), dto.tagLine())
+            .ifPresent(r -> { throw new BadRequestException("This Riot account is already connected"); });;
+
         String endpoint = getEndpoint(dto.gameName(), dto.tagLine());
 
         HttpDTO httpDTO = requestService.request(
@@ -67,6 +71,7 @@ public class RiotAccService {
             .gameName(dto.gameName())
             .tagLine(dto.tagLine())
             .puuid(dto.puuid())
+            .enableToChange(true)
             .build();
         
         return repository.save(entity);
@@ -75,6 +80,10 @@ public class RiotAccService {
     public void disconnect(UserEntity user) {
         repository.findActiveByUser(user)
             .ifPresent(account -> {
+
+                if (!account.isEnableToChange())
+                    throw new BadRequestException("Your Riot Account are not enable to change");
+                
                 account.setActive(false);
                 repository.save(account);
             });
@@ -96,6 +105,13 @@ public class RiotAccService {
 
     public Collection<RiotAccEntity> findByRiotIds(Collection<String> riotIds) {
         return repository.findActiveByRiotIds(riotIds);
+    }
+
+    public Collection<RiotAccEntity> setEnableToChange(Collection<RiotAccEntity> accounts, boolean enableToChange) {
+        for (RiotAccEntity account : accounts) {
+            account.setEnableToChange(enableToChange);
+        }
+        return accounts;
     }
 
     private void validateResponse(HttpDTO dto) {

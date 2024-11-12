@@ -125,6 +125,7 @@ public class TournamentService {
         
         tournamentJoin.setStatus(TournamentJoinStatus.LEFT);
         tournamentJoin.setActive(false);
+        tournamentJoin.setExitDate(LocalDateTime.now());
         
         return joinRepository.save(tournamentJoin);
     }

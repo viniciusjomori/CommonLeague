@@ -9,6 +9,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import br.com.jrr.apiTest.RiotAccount.RiotAccEntity;
 import br.com.jrr.apiTest.Security.TokenEntity;
 import br.com.jrr.apiTest.Security.UserDetailsAdapter;
 import br.com.jrr.apiTest.Team.Entity.TeamJoinEntity;
@@ -70,10 +71,13 @@ public class UserEntity extends UserDetailsAdapter {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private UserType role;
-
+    
+    @OneToMany(mappedBy = "user")
+    private Collection<RiotAccEntity> riotAccounts;
+    
     @OneToMany(mappedBy = "user")
     private Collection<TokenEntity> tokens;
-
+    
     @OneToMany(mappedBy = "user")
     private Collection<TeamJoinEntity> teamJoins;
 
