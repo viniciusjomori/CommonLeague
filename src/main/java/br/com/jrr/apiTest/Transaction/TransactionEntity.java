@@ -55,7 +55,7 @@ public class TransactionEntity extends BaseEntity {
     private InventoryEntity inventory;
 
     @ManyToOne
-    @JoinColumn(name = "tournament_id", nullable = false)
+    @JoinColumn(name = "tournament_id")
     private TournamentEntity tournament;
 
     @Column()
