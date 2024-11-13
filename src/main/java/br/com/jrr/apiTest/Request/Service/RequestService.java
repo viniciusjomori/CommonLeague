@@ -68,7 +68,9 @@ public class RequestService {
         );
 
         String jsonBody = httpDTO.jsonBody();
-        jsonBody = jsonBody.length() > 1000 ? jsonBody.substring(0, 1000) : jsonBody;
+
+        if (jsonBody != null)
+            jsonBody = jsonBody.length() > 1000 ? jsonBody.substring(0, 1000) : jsonBody;
 
         entity.setResponse(jsonBody);
         entity.setResponseDate(LocalDateTime.now());
