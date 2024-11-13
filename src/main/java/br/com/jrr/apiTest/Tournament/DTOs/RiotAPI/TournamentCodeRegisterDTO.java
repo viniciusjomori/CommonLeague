@@ -1,4 +1,4 @@
-package br.com.jrr.apiTest.Tournament.DTOs;
+package br.com.jrr.apiTest.Tournament.DTOs.RiotAPI;
 
 import java.util.Collection;
 
