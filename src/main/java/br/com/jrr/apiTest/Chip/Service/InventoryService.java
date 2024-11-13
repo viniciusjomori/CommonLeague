@@ -13,17 +13,22 @@ import org.springframework.stereotype.Service;
 import com.google.gson.Gson;
 
 import br.com.jrr.apiTest.Chip.Entity.InventoryEntity;
+import br.com.jrr.apiTest.App.Exceptions.BadRequestException;
 import br.com.jrr.apiTest.App.Exceptions.ConflictException;
+import br.com.jrr.apiTest.App.Exceptions.ForbiddenException;
 import br.com.jrr.apiTest.App.Exceptions.InternalServerErrorException;
 import br.com.jrr.apiTest.App.Exceptions.NotFoundException;
 import br.com.jrr.apiTest.Chip.DTO.BuyRequestDTO;
 import br.com.jrr.apiTest.Chip.DTO.BuyResponseDTO;
+import br.com.jrr.apiTest.Chip.DTO.SaleApiRequestDTO;
+import br.com.jrr.apiTest.Chip.DTO.SaleClientRequestDTO;
 import br.com.jrr.apiTest.Chip.Entity.ChipEntity;
 import br.com.jrr.apiTest.Chip.Repository.InventoryRepository;
 import br.com.jrr.apiTest.Request.HttpDTO;
 import br.com.jrr.apiTest.Request.Enum.RequestMethod;
 import br.com.jrr.apiTest.Request.Service.RequestService;
 import br.com.jrr.apiTest.Request.Service.RequestSignatureService;
+import br.com.jrr.apiTest.Security.Util.PasswordUtil;
 import br.com.jrr.apiTest.Transaction.TransactionEntity;
 import br.com.jrr.apiTest.User.UserEntity;
 import br.com.jrr.apiTest.User.UserService;
@@ -48,6 +53,9 @@ public class InventoryService {
 
     @Autowired
     private RequestSignatureService signatureService;
+
+    @Autowired
+    private PasswordUtil passwordUtil;
 
     @Value("${commonleague-pay.base-dns}")
     private String baseEndpoint;
@@ -88,6 +96,43 @@ public class InventoryService {
         }
 
         throw new InternalServerErrorException();
+    }
+
+    public void sellChip(SaleClientRequestDTO clientRequest) {
+        if(clientRequest.qnt() < 1)
+        throw new BadRequestException("Chip quantity can't be zero or negative");
+        
+        ChipEntity chip = chipService.findById(clientRequest.chipId());
+        
+        UserEntity user = userService.getCurrentUser();
+        if(!passwordUtil.matches(clientRequest.password(), user))
+            throw new ForbiddenException("Wrong password");
+        
+        if(user.getPixKey() == null)
+            throw new BadRequestException("You don't have a registered Pix key");
+        
+        InventoryEntity inventory = findByUser(user, chip);
+        if(inventory.getQnt() < clientRequest.qnt())
+            throw new BadRequestException("You don't enough chips");
+        String endpoint = baseEndpoint + "withdraw";
+
+        SaleApiRequestDTO apiRequest = new SaleApiRequestDTO(
+            inventory.getId().toString(),
+            user.getPixKey(),
+            clientRequest.qnt(),
+            chip.getValue()
+        );
+
+        Map<String, String> headers = new HashMap<>();
+        String xRequestId = UUID.randomUUID().toString();
+        String xSignature = signatureService.generateSignature(
+            xRequestId,
+            inventory.getId().toString()
+        );
+        headers.put("x-signature", xSignature);
+        headers.put("x-request-id", xRequestId);
+
+        requestService.request(endpoint, RequestMethod.POST, apiRequest, headers);
     }
 
     public InventoryEntity findByUser(UserEntity user, ChipEntity chip) {
