@@ -19,11 +19,11 @@ public interface UserMapper {
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
     @Mapping(target = "password", ignore = true)
-    @Mapping(target = "imagePath", expression = "java(dto.profile().imagePath)")
+    @Mapping(target = "imagePath", expression = "java(dto.profile() != null ? dto.profile().imagePath : null)")
     UserEntity toEntity(UserRegisterDTO dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "imagePath", expression = "java(dto.profile().imagePath)")
+    @Mapping(target = "imagePath", expression = "java(dto.profile() != null ? dto.profile().imagePath : entity.getImagePath())")
     @Mapping(target = "password", ignore = true)
     UserEntity updateUser(UserUpdateDTO dto, @MappingTarget UserEntity entity);
 
