@@ -132,7 +132,10 @@ public class InventoryService {
         headers.put("x-signature", xSignature);
         headers.put("x-request-id", xRequestId);
 
-        requestService.request(endpoint, RequestMethod.POST, apiRequest, headers);
+        HttpDTO response = requestService.request(endpoint, RequestMethod.POST, apiRequest, headers);
+
+        if(response.statusCode() != 200)
+            throw new InternalServerErrorException();
     }
 
     public InventoryEntity findByUser(UserEntity user, ChipEntity chip) {
