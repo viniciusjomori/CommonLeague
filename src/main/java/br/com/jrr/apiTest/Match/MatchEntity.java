@@ -58,4 +58,18 @@ public class MatchEntity extends BaseEntity {
     @Column
     private String riotId;
 
+    public TournamentJoinEntity getWinner() {
+        if (this.status.equals(MatchStatus.PENDING))
+            return null;
+        
+        return this.status.equals(MatchStatus.TEAM_1_WINS) ? this.join1 : this.join2;
+    }
+
+    public TournamentJoinEntity getLoser() {
+        if (this.status.equals(MatchStatus.PENDING))
+            return null;
+        
+        return this.status.equals(MatchStatus.TEAM_1_WINS) ? this.join2 : this.join1;
+    }
+
 }

@@ -28,9 +28,9 @@ import br.com.jrr.apiTest.RiotAccount.RiotAccEntity;
 import br.com.jrr.apiTest.Team.Entity.TeamEntity;
 import br.com.jrr.apiTest.Team.Entity.TeamJoinEntity;
 import br.com.jrr.apiTest.Team.Service.TeamService;
-import br.com.jrr.apiTest.Tournament.DTOs.ProviderRequestDTO;
-import br.com.jrr.apiTest.Tournament.DTOs.TournamentCodeRegisterDTO;
-import br.com.jrr.apiTest.Tournament.DTOs.TournamentConnectDTO;
+import br.com.jrr.apiTest.Tournament.DTOs.RiotAPI.ProviderRequestDTO;
+import br.com.jrr.apiTest.Tournament.DTOs.RiotAPI.TournamentCodeRegisterDTO;
+import br.com.jrr.apiTest.Tournament.DTOs.RiotAPI.TournamentConnectDTO;
 import br.com.jrr.apiTest.Tournament.Entity.TournamentEntity;
 import br.com.jrr.apiTest.Tournament.Entity.TournamentJoinEntity;
 import br.com.jrr.apiTest.Tournament.Enum.TournamentJoinStatus;
@@ -181,16 +181,36 @@ public class TournamentService {
         return joinRepository.findOpenByTeam(team);
     }
 
+    public Collection<TournamentJoinEntity> findOpenByTournament(TournamentEntity tournament) {
+        return joinRepository.findOpenByTournament(tournament);
+    }
+
     public TournamentEntity findById(UUID id) {
         return tournamentRepository.findById(id)
             .orElseThrow(() -> new NotFoundException("Tournament not found"));
+    }
+
+    public Collection<TournamentEntity> findAllByTeam(TeamEntity team) {
+        Collection<TournamentJoinEntity> joins = joinRepository.findActiveByTeam(team);
+        return joins.stream()
+            .map(TournamentJoinEntity::getTournament)
+            .toList();
+    }
+
+    public Collection<TournamentEntity> findAllByCurrentTeam() {
+        TeamEntity team = teamService.getCurrentTeam()
+            .orElseThrow(() -> new NotFoundException("Team not found"))
+            .getTeam();
+        return findAllByTeam(team);
     }
 
     public TournamentJoinEntity findActiveByPuuids(List<String> puuids) {
         TeamEntity team = teamService.findByRiotIds(puuids);
 
         return findOpenByTeam(team)
-            .orElseThrow(() -> new BadRequestException("Team is not in a tournament"));
+            .orElseThrow(() -> new BadRequestException(
+                String.format("Team %s is not in a tournament", team.getName())
+            ));
     }
 
     public TournamentJoinEntity loseTournament(TournamentJoinEntity join) {

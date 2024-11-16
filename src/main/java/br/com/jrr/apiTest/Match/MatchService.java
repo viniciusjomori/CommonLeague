@@ -3,6 +3,7 @@ package br.com.jrr.apiTest.Match;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,7 +43,7 @@ public class MatchService {
 
         MatchStatus status = defineStatus(dto.info());
         
-        TournamentJoinEntity loser = status == MatchStatus.TEAM_1_WINS ? join1 : join2;
+        TournamentJoinEntity loser = status.equals(MatchStatus.TEAM_1_WINS) ? join2 : join1;
         tournamentService.loseTournament(loser);
 
         MatchEntity entity = MatchEntity.builder()
@@ -59,6 +60,15 @@ public class MatchService {
         tournamentService.finishTournament(tournament);
         
         return repository.save(entity);
+    }
+
+    public Collection<MatchEntity> findAllByTournament(UUID tournamentId) {
+        TournamentEntity tournament = tournamentService.findById(tournamentId);
+        Collection<TournamentJoinEntity> joins = tournamentService.findOpenByTournament(tournament);
+        System.out.println("\n\n");
+        System.out.println(joins.size());
+        System.out.println("\n\n");
+        return repository.findAllByJoins(joins);
     }
 
     private List<String> exctractPuuids(MatchInfoDTO info, int teamId) {

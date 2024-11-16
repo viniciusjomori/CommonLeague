@@ -1,10 +1,12 @@
 package br.com.jrr.apiTest.Match;
 
+import java.util.Collection;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +36,13 @@ public class MatchController {
 
             MatchEntity entity = service.registerMatch(tournamentId, dto);
             return ResponseEntity.ok(mapper.toResponse(entity));
+    }
+
+    @PermitAll
+    @GetMapping
+    public ResponseEntity<Collection<MatchResponseDTO>> findByTournament(@RequestParam("tournament") UUID tournamentId) {
+        Collection<MatchEntity> matchs = service.findAllByTournament(tournamentId);
+        return ResponseEntity.ok(mapper.toResponse(matchs));
     }
 
 }

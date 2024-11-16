@@ -1,5 +1,6 @@
 package br.com.jrr.apiTest.Tournament;
 
+import java.util.Collection;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.jrr.apiTest.App.ResponseDTO;
 import br.com.jrr.apiTest.Tournament.DTOs.TournamentJoinResponseDTO;
+import br.com.jrr.apiTest.Tournament.DTOs.TournamentResponseDTO;
 import br.com.jrr.apiTest.Tournament.Entity.TournamentEntity;
 import br.com.jrr.apiTest.Tournament.Entity.TournamentJoinEntity;
 import br.com.jrr.apiTest.Tournament.Mapper.TournamentJoinMapper;
+import br.com.jrr.apiTest.Tournament.Mapper.TournamentMapper;
+import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
 @RestController
@@ -28,6 +32,9 @@ public class TournamentController {
 
     @Autowired
     private TournamentService service;
+
+    @Autowired
+    private TournamentMapper tournamentMapper;
 
     @Autowired
     private TournamentJoinMapper joinMapper;
@@ -40,12 +47,36 @@ public class TournamentController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping
+    @GetMapping("join")
     @RolesAllowed({"TEAM_MEMBER", "TEAM_CAPTAIN"})
-    public ResponseEntity<TournamentJoinResponseDTO> getCurrentTournament() {
+    public ResponseEntity<TournamentJoinResponseDTO> getCurrentTournamentJoin() {
         TournamentJoinEntity join = service.getCurrentJoin();
         TournamentJoinResponseDTO response = joinMapper.toResponse(join);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("{id}")
+    @PermitAll
+    public ResponseEntity<TournamentResponseDTO> findById(@PathVariable UUID id) {
+        TournamentEntity entity = service.findById(id);
+        TournamentResponseDTO response = tournamentMapper.toResponse(entity);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("{id}/teams")
+    @PermitAll
+    public ResponseEntity<Collection<TournamentJoinResponseDTO>> findTeamsByTournament(@PathVariable UUID id) {
+        TournamentEntity tournament = service.findById(id);
+        Collection<TournamentJoinEntity> joins = service.findOpenByTournament(tournament);
+        Collection<TournamentJoinResponseDTO> response = joinMapper.toResponse(joins);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping()
+    @RolesAllowed({"TEAM_MEMBER", "TEAM_CAPTAIN"})
+    public ResponseEntity<Collection<TournamentResponseDTO>> findAll() {
+        Collection<TournamentEntity> tournaments = service.findAllByCurrentTeam();
+        return ResponseEntity.ok(tournamentMapper.toResponse(tournaments));
     }
 
     @DeleteMapping

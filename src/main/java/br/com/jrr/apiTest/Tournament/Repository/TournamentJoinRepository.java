@@ -16,6 +16,9 @@ public interface TournamentJoinRepository extends JpaRepository<TournamentJoinEn
     @Query("SELECT j FROM TournamentJoinEntity j WHERE j.team = :team AND (j.status = 'WAITING' OR j.status = 'PLAYING') AND j.active = true")
     Optional<TournamentJoinEntity> findOpenByTeam(TeamEntity team);
 
+    @Query("SELECT j FROM TournamentJoinEntity j WHERE j.tournament = :tournament AND exitDate IS NOT NULL AND j.active = true")
+    Collection<TournamentJoinEntity> findOpenByTournament(TournamentEntity tournament);
+
     @Query("SELECT j FROM TournamentJoinEntity j WHERE j.tournament = :tournament AND j.status = 'WAITING' AND j.active = true")
     Collection<TournamentJoinEntity> findWaitingByTournament(TournamentEntity tournament);
 
@@ -24,6 +27,9 @@ public interface TournamentJoinRepository extends JpaRepository<TournamentJoinEn
 
     @Query("SELECT j FROM TournamentJoinEntity j WHERE j.tournament = :tournament AND j.status = 'LOSE' AND j.active = true")
     Collection<TournamentJoinEntity> findLoseByTournament(TournamentEntity tournament);
+
+    @Query("SELECT j FROM TournamentJoinEntity j WHERE j.team = :team AND j.active = true")
+    Collection<TournamentJoinEntity> findActiveByTeam(TeamEntity team);
 
     @Query("SELECT count(j) FROM TournamentJoinEntity j WHERE j.tournament = :tournament AND j.status = 'WAITING' AND j.active = true")
     int countWaitingByTournament(TournamentEntity tournament);
