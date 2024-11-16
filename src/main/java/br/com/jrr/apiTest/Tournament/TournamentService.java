@@ -113,13 +113,10 @@ public class TournamentService {
             .orElseThrow(() -> new NotFoundException("No tournament"));
     }
 
-    public TournamentJoinEntity getCurrentActiveJoin(){
-        TeamEntity team = teamService.getCurrentTeam()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN))
-                .getTeam();
+    public Collection<TournamentJoinEntity> findJoinsByCurrentTeam(){
+        Optional<TeamJoinEntity> team = teamService.getCurrentTeam();
 
-        return joinRepository.findActiveByTeam(team)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        return team.isPresent() ? joinRepository.findAllByTeam(team.get().getTeam()) : new ArrayList<>();
     }
     
     public TournamentJoinEntity cancelJoin() {
