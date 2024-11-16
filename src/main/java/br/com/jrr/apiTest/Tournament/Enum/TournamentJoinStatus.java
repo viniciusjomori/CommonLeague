@@ -2,9 +2,11 @@ package br.com.jrr.apiTest.Tournament.Enum;
 
 public enum TournamentJoinStatus {
     
-    WAITING,
+    WAITING_TOURNAMENT,
     LEFT,
     PLAYING,
-    FINISHED
+    WAITING_ROUND,
+    WIN,
+    LOSE
 
 }

@@ -2,8 +2,8 @@ package br.com.jrr.apiTest.Tournament.Repository;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.UUID;
 
-import org.hibernate.validator.constraints.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

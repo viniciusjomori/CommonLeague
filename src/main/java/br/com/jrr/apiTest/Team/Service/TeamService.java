@@ -13,6 +13,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import br.com.jrr.apiTest.App.Exceptions.BadRequestException;
+import br.com.jrr.apiTest.App.Exceptions.NotFoundException;
+import br.com.jrr.apiTest.RiotAccount.RiotAccEntity;
+import br.com.jrr.apiTest.RiotAccount.RiotAccService;
 import br.com.jrr.apiTest.Team.DTO.TeamRegisterDTO;
 import br.com.jrr.apiTest.Team.Entity.TeamEntity;
 import br.com.jrr.apiTest.Team.Entity.TeamJoinEntity;
@@ -21,6 +25,7 @@ import br.com.jrr.apiTest.Team.Enum.TeamRoleName;
 import br.com.jrr.apiTest.Team.Mapper.TeamMapper;
 import br.com.jrr.apiTest.Team.Repository.TeamJoinRepository;
 import br.com.jrr.apiTest.Team.Repository.TeamRepository;
+import br.com.jrr.apiTest.Team.Strategy.ITeamValidation;
 import br.com.jrr.apiTest.User.UserEntity;
 import br.com.jrr.apiTest.User.UserService;
 
@@ -39,14 +44,20 @@ public class TeamService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private RiotAccService riotService;
+
+    @Autowired
+    private List<ITeamValidation> validations;
+
     public TeamEntity registerTeam(TeamRegisterDTO dto) {
         UserEntity user = userService.getCurrentUser();
         findActiveByUser(user).ifPresent(join -> {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new BadRequestException("Already in team");
         });
 
         TeamEntity newTeam = teamMapper.toEntity(dto);
-        newTeam = teamRepository.save(newTeam);
+        newTeam = saveTeam(newTeam);
 
         TeamJoinEntity newJoin = TeamJoinEntity.builder()
             .team(newTeam)
@@ -71,6 +82,10 @@ public class TeamService {
 
     public Collection<TeamJoinEntity> findActiveByTeam(TeamEntity team) {
         return joinRepository.findActiveByTeam(team);
+    }
+
+    public Collection<TeamJoinEntity> findActiveByUsers(Collection<UserEntity> users) {
+        return joinRepository.findActiveByUsers(users);
     }
 
     public Optional<TeamJoinEntity> getCurrentTeam() {
@@ -182,8 +197,37 @@ public class TeamService {
         return joinRepository.save(join);
     }
 
-    private boolean sameTeam(UserEntity user1, UserEntity user2) {
+    public Collection<RiotAccEntity> findRiotAccByTeam(TeamEntity team) {
+        Collection<TeamJoinEntity> members = findActiveByTeam(team);
+        Collection<UserEntity> users = members.stream()
+            .map(TeamJoinEntity::getUser)
+            .toList();
+        
+        return riotService.findByUsers(users);
+    }
 
+    public TeamEntity findByRiotIds(List<String> userRiotIds) {
+        List<TeamEntity> teams = riotService.findByRiotIds(userRiotIds).stream()
+            .map(RiotAccEntity::getUser)
+            .flatMap(user -> findActiveByUser(user).stream())
+            .map(TeamJoinEntity::getTeam)
+            .distinct()
+            .toList();
+
+        if (teams.size() == 1 && teams.get(0) != null) {
+            return teams.get(0);
+        }
+        
+        throw new NotFoundException("Team not found");
+    }
+
+    private TeamEntity saveTeam(TeamEntity team) {
+        validateTeam(team);
+        return teamRepository.save(team);
+    }
+
+    private boolean sameTeam(UserEntity user1, UserEntity user2) {
+        
         TeamJoinEntity join1 = findActiveByUser(user1).orElse(null);
         TeamJoinEntity join2 = findActiveByUser(user2).orElse(null);
         if (join1 == null || join2 == null) {
@@ -191,41 +235,53 @@ public class TeamService {
         }
         return join1.getTeam().equals(join2.getTeam());
     }
-
+    
     private TeamJoinEntity changeInviteStatus(TeamJoinEntity invite, TeamJoinStatus status) {
         if (!invite.getJoinStatus().equals(TeamJoinStatus.PENDING))
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        
         UserEntity user = userService.getCurrentUser();
         if(!invite.getUser().getId().equals(user.getId()))
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        
         invite.setJoinStatus(status);
         return joinRepository.save(invite);
     }
-
+    
     private TeamJoinEntity findJoinById(UUID id) {
         return joinRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
-
+    
     private void randomizeNewCaptain(TeamEntity team) {
         Collection<TeamJoinEntity> data = joinRepository.findActiveByTeam(team);
         if (data.isEmpty()) return;
-
+        
         List<TeamJoinEntity> joins = new ArrayList<>(data);
         Random random = new Random();
-
+        
         int index = random.nextInt(joins.size());
         TeamJoinEntity randomJoin = joins.get(index);
-
+        
         randomJoin.setRole(TeamRoleName.ROLE_TEAM_CAPTAIN);
-
+        
         joinRepository.save(randomJoin);
     }
-
+    
     private boolean teamAcceptsNewMembers(TeamEntity team) {
         return findActiveByTeam(team).size() < 5;
     }
 
+    private void validateTeam(TeamEntity team) {
+        List<String> errors = new ArrayList<>();
+    
+        for (ITeamValidation validation : validations) {
+            if(!validation.validate(team))
+                errors.add(validation.getMessage());
+        }
+    
+        if (!errors.isEmpty())
+            throw new BadRequestException(errors);
+    }
+    
 }

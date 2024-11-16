@@ -8,6 +8,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import br.com.jrr.apiTest.App.BaseEntity;
+import br.com.jrr.apiTest.Tournament.Enum.TournamentJoinStatus;
 import br.com.jrr.apiTest.Tournament.Enum.TournamentStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -55,7 +56,17 @@ public class TournamentEntity extends BaseEntity {
     @Column
     private LocalDateTime startDate;
 
+    @Column
+    private LocalDateTime endDate;
+
     @OneToMany(mappedBy = "tournament")
     private Collection<TournamentJoinEntity> joins;
+
+    public TournamentJoinEntity getWinner() {
+        return this.joins.stream()
+            .filter(j -> j.getStatus().equals(TournamentJoinStatus.WIN))
+            .findFirst()
+            .orElse(null);
+    }
 
 }

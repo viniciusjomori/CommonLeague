@@ -6,10 +6,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
+import br.com.jrr.apiTest.App.Exceptions.ConflictException;
+import br.com.jrr.apiTest.App.Exceptions.NotFoundException;
 import br.com.jrr.apiTest.Chip.Entity.InventoryEntity;
 import br.com.jrr.apiTest.Chip.Service.InventoryService;
 import br.com.jrr.apiTest.Team.Entity.TeamJoinEntity;
@@ -40,21 +42,38 @@ public class TransactionService {
         inventoryService.processTransactions(transactions);
     }
 
-    public void createForTournament(Collection<TeamJoinEntity> members, int qntChips) {        
+    public void createForTournament(Collection<TeamJoinEntity> members, int qntChips, TournamentEntity tournament) {        
         Collection<InventoryEntity> inventories = findMembersInventories(members);
 
         for(InventoryEntity inventory : inventories) {
             if(inventory.getQnt() < qntChips)
-                throw new ResponseStatusException(HttpStatus.CONFLICT);
+                throw new ConflictException("Someone on your team doesn't have enough chips");
         }
         
-        createNewTransactions(inventories, qntChips, TransactionType.CREATE_TOURNAMENT);
+        createNewTransactions(inventories, qntChips, TransactionType.CREATE_TOURNAMENT, tournament);
 
     }
 
     public void refundTournament(Collection<TeamJoinEntity> members, TournamentEntity tournament) {
         Collection<InventoryEntity> inventories = findMembersInventories(members);
         createNewTransactions(inventories, tournament.getQntChipsPerPlayer(), TransactionType.REFUND_TOURNAMENT);
+    }
+
+    public void rewardTournament(TournamentEntity tournament, Collection<TeamJoinEntity> winners, Collection<TeamJoinEntity> losers) {
+        int qntChipPerPlayer = tournament.getQntChipsPerPlayer();
+        int tournamentSize = losers.size() + winners.size();
+        double amountChips = qntChipPerPlayer * tournamentSize * 0.85;
+
+        int rewardPerPlayer = (int) Math.ceil(amountChips / winners.size());
+
+        Collection<InventoryEntity> inventories = findMembersInventories(winners);
+        createNewTransactions(inventories, rewardPerPlayer, TransactionType.WIN_TOURNAMENT);
+    }
+
+    public Page<TransactionEntity> findAllByCurrentUser(int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        Collection<InventoryEntity> inventories = inventoryService.findByCurrentUser();
+        return repository.findAllByInventories(inventories, pageable);
     }
 
     private Collection<InventoryEntity> findMembersInventories(Collection<TeamJoinEntity> members) {
@@ -71,17 +90,22 @@ public class TransactionService {
 
     private TransactionEntity findById(UUID id) {
         return repository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new NotFoundException("Transaction not found"));
     }
 
     private void createNewTransactions(Collection<InventoryEntity> inventories, int qntChips, TransactionType type) {
+        createNewTransactions(inventories, qntChips, type, null);
+    }
+
+    private void createNewTransactions(Collection<InventoryEntity> inventories, int qntChips, TransactionType type, TournamentEntity tournament) {
         Collection<TransactionEntity> transactions = new ArrayList<>();
         for (InventoryEntity inventory : inventories) {
             TransactionEntity transaction = TransactionEntity.builder()
                 .type(type)
-                .status(TransactionStatus.pending)
+                .status(TransactionStatus.approved)
                 .chipsQty(qntChips)
                 .inventory(inventory)
+                .tournament(tournament)
                 .build();
             transactions.add(transaction);
         }

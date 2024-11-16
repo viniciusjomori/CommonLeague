@@ -3,6 +3,7 @@ package br.com.jrr.apiTest.RiotAccount;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.jrr.apiTest.App.ResponseDTO;
 import br.com.jrr.apiTest.RiotAccount.DTO.RiotAccClientDTO;
 import br.com.jrr.apiTest.RiotAccount.DTO.RiotAccConnectDTO;
 import br.com.jrr.apiTest.User.UserEntity;
@@ -44,10 +46,12 @@ public class RiotAccController {
 
     @DeleteMapping
     @RolesAllowed("CLIENT")
-    public ResponseEntity<Void> disconnect() {
+    public ResponseEntity<ResponseDTO> disconnect() {
         UserEntity user = userService.getCurrentUser();
         accountService.disconnect(user);
-        return ResponseEntity.noContent().build();
+
+        ResponseDTO response = new ResponseDTO(HttpStatus.OK, "Disconnected");
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/current")

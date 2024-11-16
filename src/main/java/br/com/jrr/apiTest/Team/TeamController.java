@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import br.com.jrr.apiTest.Team.DTO.InviteResponseDTO;
 import br.com.jrr.apiTest.Team.DTO.MemberResponseDTO;
 import br.com.jrr.apiTest.Team.DTO.TeamRegisterDTO;
 import br.com.jrr.apiTest.Team.DTO.TeamResponseDTO;
@@ -97,47 +98,47 @@ public class TeamController {
 
     @DeleteMapping("left")
     @RolesAllowed({"TEAM_MEMBER", "TEAM_CAPTAIN"})
-    public ResponseEntity<Void> leftTeam() {
-        teamService.leftTeam();
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<MemberResponseDTO> leftTeam() {
+        TeamJoinEntity join = teamService.leftTeam();
+        return ResponseEntity.ok(joinMapper.toMember(join));
     }
 
     @PostMapping("/invite")
     @RolesAllowed({"TEAM_MEMBER", "TEAM_CAPTAIN"})
-    public ResponseEntity<Void> inviteUser(@RequestParam("user") UUID userId) {
+    public ResponseEntity<InviteResponseDTO> inviteUser(@RequestParam("user") UUID userId) {
         UserEntity user = userService.findById(userId);
-        teamService.inviteUser(user);
-        return ResponseEntity.noContent().build();
+        TeamJoinEntity invite = teamService.inviteUser(user);
+        return ResponseEntity.ok(joinMapper.toInvite(invite));
     }
 
     @PutMapping("/invite/{id}/accept")
     @RolesAllowed("CLIENT")
-    public ResponseEntity<Void> acceptInvite(@PathVariable UUID id) {
-        teamService.acceptInvite(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<InviteResponseDTO> acceptInvite(@PathVariable UUID id) {
+        TeamJoinEntity invite = teamService.acceptInvite(id);
+        return ResponseEntity.ok(joinMapper.toInvite(invite));
     }
 
     @PutMapping("/invite/{id}/refuse")
     @RolesAllowed("CLIENT")
-    public ResponseEntity<Void> refuseInvite(@PathVariable UUID id) {
-        teamService.refuseInvite(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<InviteResponseDTO> refuseInvite(@PathVariable UUID id) {
+        TeamJoinEntity invite = teamService.refuseInvite(id);
+        return ResponseEntity.ok(joinMapper.toInvite(invite));
     }
 
     @DeleteMapping("/user/{id}")
     @RolesAllowed("TEAM_CAPTAIN")
-    public ResponseEntity<Void> banUser(@PathVariable UUID id) {
+    public ResponseEntity<MemberResponseDTO> banUser(@PathVariable UUID id) {
         UserEntity user = userService.findById(id);
-        teamService.banUser(user);
-        return ResponseEntity.noContent().build();
+        TeamJoinEntity join = teamService.banUser(user);
+        return ResponseEntity.ok(joinMapper.toMember(join));
     }
 
     @PutMapping("/user/{id}/to-captain")
     @RolesAllowed("TEAM_CAPTAIN")
-    public ResponseEntity<Void> toCaptain(@PathVariable UUID id) {
+    public ResponseEntity<MemberResponseDTO> toCaptain(@PathVariable UUID id) {
         UserEntity user = userService.findById(id);
-        teamService.toCaptain(user);
-        return ResponseEntity.noContent().build();
+        TeamJoinEntity join = teamService.toCaptain(user);
+        return ResponseEntity.ok(joinMapper.toMember(join));
     }
 
 

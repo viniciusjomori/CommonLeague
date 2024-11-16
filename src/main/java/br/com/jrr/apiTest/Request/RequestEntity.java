@@ -44,7 +44,7 @@ public class RequestEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private RequestMethod method;
     
-    @Column
+    @Column(length = 3000)
     private String body;
     
     @Column

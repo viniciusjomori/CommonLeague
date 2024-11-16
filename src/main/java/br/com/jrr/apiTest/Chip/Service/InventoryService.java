@@ -2,24 +2,33 @@ package br.com.jrr.apiTest.Chip.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.google.gson.Gson;
 
 import br.com.jrr.apiTest.Chip.Entity.InventoryEntity;
+import br.com.jrr.apiTest.App.Exceptions.BadRequestException;
+import br.com.jrr.apiTest.App.Exceptions.ConflictException;
+import br.com.jrr.apiTest.App.Exceptions.ForbiddenException;
+import br.com.jrr.apiTest.App.Exceptions.InternalServerErrorException;
+import br.com.jrr.apiTest.App.Exceptions.NotFoundException;
 import br.com.jrr.apiTest.Chip.DTO.BuyRequestDTO;
 import br.com.jrr.apiTest.Chip.DTO.BuyResponseDTO;
+import br.com.jrr.apiTest.Chip.DTO.SaleApiRequestDTO;
+import br.com.jrr.apiTest.Chip.DTO.SaleClientRequestDTO;
 import br.com.jrr.apiTest.Chip.Entity.ChipEntity;
 import br.com.jrr.apiTest.Chip.Repository.InventoryRepository;
 import br.com.jrr.apiTest.Request.HttpDTO;
-import br.com.jrr.apiTest.Request.RequestService;
 import br.com.jrr.apiTest.Request.Enum.RequestMethod;
+import br.com.jrr.apiTest.Request.Service.RequestService;
+import br.com.jrr.apiTest.Request.Service.RequestSignatureService;
+import br.com.jrr.apiTest.Security.Util.PasswordUtil;
 import br.com.jrr.apiTest.Transaction.TransactionEntity;
 import br.com.jrr.apiTest.User.UserEntity;
 import br.com.jrr.apiTest.User.UserService;
@@ -42,6 +51,12 @@ public class InventoryService {
     @Autowired
     private Gson gson;
 
+    @Autowired
+    private RequestSignatureService signatureService;
+
+    @Autowired
+    private PasswordUtil passwordUtil;
+
     @Value("${commonleague-pay.base-dns}")
     private String baseEndpoint;
 
@@ -61,7 +76,18 @@ public class InventoryService {
         );
         String endpoint = baseEndpoint + "buychips";
 
-        HttpDTO httpDTO = requestService.request(endpoint, RequestMethod.POST, order);
+        Map<String, String> headers = new HashMap<>();
+
+        String xRequestId = UUID.randomUUID().toString();
+        String xSignature = signatureService.generateSignature(
+            xRequestId,
+            inventory.getId().toString()
+        );
+
+        headers.put("x-signature", xSignature);
+        headers.put("x-request-id", xRequestId);
+
+        HttpDTO httpDTO = requestService.request(endpoint, RequestMethod.POST, order, headers);
         
         if(httpDTO.statusCode() == 200) {
             String json = httpDTO.jsonBody();
@@ -69,7 +95,47 @@ public class InventoryService {
             return orderResponse;
         }
 
-        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        throw new InternalServerErrorException();
+    }
+
+    public void sellChip(SaleClientRequestDTO clientRequest) {
+        if(clientRequest.qnt() < 1)
+        throw new BadRequestException("Chip quantity can't be zero or negative");
+        
+        ChipEntity chip = chipService.findById(clientRequest.chipId());
+        
+        UserEntity user = userService.getCurrentUser();
+        if(!passwordUtil.matches(clientRequest.password(), user))
+            throw new ForbiddenException("Wrong password");
+        
+        if(user.getPixKey() == null)
+            throw new BadRequestException("You don't have a registered Pix key");
+        
+        InventoryEntity inventory = findByUser(user, chip);
+        if(inventory.getQnt() < clientRequest.qnt())
+            throw new BadRequestException("You don't enough chips");
+        String endpoint = baseEndpoint + "withdraw";
+
+        SaleApiRequestDTO apiRequest = new SaleApiRequestDTO(
+            inventory.getId().toString(),
+            user.getPixKey(),
+            clientRequest.qnt(),
+            chip.getValue()
+        );
+
+        Map<String, String> headers = new HashMap<>();
+        String xRequestId = UUID.randomUUID().toString();
+        String xSignature = signatureService.generateSignature(
+            xRequestId,
+            inventory.getId().toString()
+        );
+        headers.put("x-signature", xSignature);
+        headers.put("x-request-id", xRequestId);
+
+        HttpDTO response = requestService.request(endpoint, RequestMethod.POST, apiRequest, headers);
+
+        if(response.statusCode() != 200)
+            throw new InternalServerErrorException();
     }
 
     public InventoryEntity findByUser(UserEntity user, ChipEntity chip) {
@@ -89,7 +155,7 @@ public class InventoryService {
 
     public InventoryEntity findById(UUID id) {
         return repository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new NotFoundException("Inventory not found"));
     }
 
     public InventoryEntity processTransaction(TransactionEntity transaction) {
@@ -116,7 +182,7 @@ public class InventoryService {
 
         inventory.plusQnt(qnt);
         if (inventory.getQnt() < 0)
-            throw new ResponseStatusException(HttpStatus.CONFLICT);
+            throw new ConflictException("Qnt cannot be negative");
             
         return inventory;
     }

@@ -1,5 +1,6 @@
 package br.com.jrr.apiTest.RiotAccount;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,9 +11,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.google.gson.Gson;
 
+import br.com.jrr.apiTest.App.Exceptions.BadRequestException;
+import br.com.jrr.apiTest.App.Exceptions.NotFoundException;
 import br.com.jrr.apiTest.Request.HttpDTO;
-import br.com.jrr.apiTest.Request.RequestService;
 import br.com.jrr.apiTest.Request.Enum.RequestMethod;
+import br.com.jrr.apiTest.Request.Service.RequestService;
 import br.com.jrr.apiTest.RiotAccount.DTO.RiotAccConnectDTO;
 import br.com.jrr.apiTest.RiotAccount.DTO.RiotAccFromApiDTO;
 import br.com.jrr.apiTest.RiotAccount.Strategy.IRiotAccError;
@@ -44,6 +47,9 @@ public class RiotAccService {
     private String baseDns;
 
     public RiotAccEntity connect(RiotAccConnectDTO dto) {
+        repository.findByPlayerInfo(dto.gameName(), dto.tagLine())
+            .ifPresent(r -> { throw new BadRequestException("This Riot account is already connected"); });;
+
         String endpoint = getEndpoint(dto.gameName(), dto.tagLine());
 
         HttpDTO httpDTO = requestService.request(
@@ -65,6 +71,7 @@ public class RiotAccService {
             .gameName(dto.gameName())
             .tagLine(dto.tagLine())
             .puuid(dto.puuid())
+            .enableToChange(true)
             .build();
         
         return repository.save(entity);
@@ -73,6 +80,10 @@ public class RiotAccService {
     public void disconnect(UserEntity user) {
         repository.findActiveByUser(user)
             .ifPresent(account -> {
+
+                if (!account.isEnableToChange())
+                    throw new BadRequestException("Your Riot Account are not enable to change");
+                
                 account.setActive(false);
                 repository.save(account);
             });
@@ -80,13 +91,27 @@ public class RiotAccService {
 
     public RiotAccEntity findByUser(UserEntity user) {
         return repository.findActiveByUser(user)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new NotFoundException("No Riot Account connected"));
     }
 
     public RiotAccEntity findCurrentAccount() {
         UserEntity user = userService.getCurrentUser();
-        return repository.findActiveByUser(user)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        return findByUser(user);
+    }
+
+    public Collection<RiotAccEntity> findByUsers(Collection<UserEntity> users) {
+        return repository.findActiveByUsers(users);
+    }
+
+    public Collection<RiotAccEntity> findByRiotIds(Collection<String> riotIds) {
+        return repository.findActiveByRiotIds(riotIds);
+    }
+
+    public Collection<RiotAccEntity> setEnableToChange(Collection<RiotAccEntity> accounts, boolean enableToChange) {
+        for (RiotAccEntity account : accounts) {
+            account.setEnableToChange(enableToChange);
+        }
+        return accounts;
     }
 
     private void validateResponse(HttpDTO dto) {
@@ -106,7 +131,7 @@ public class RiotAccService {
     private String getEndpoint(String tagLine, String gameName) {
         StringBuilder sb = new StringBuilder();
         sb.append(baseDns);
-        sb.append("account/v1/accounts/by-riot-id/");
+        sb.append("riot/account/v1/accounts/by-riot-id/");
         sb.append(tagLine);
         sb.append("/");
         sb.append(gameName);

@@ -1,19 +1,22 @@
 package br.com.jrr.apiTest.User;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
+import br.com.jrr.apiTest.App.Exceptions.BadRequestException;
+import br.com.jrr.apiTest.App.Exceptions.NotFoundException;
 import br.com.jrr.apiTest.User.DTO.UserRegisterDTO;
 import br.com.jrr.apiTest.User.DTO.UserUpdateDTO;
 import br.com.jrr.apiTest.User.Enum.UserType;
+import br.com.jrr.apiTest.User.Strategy.IUserValidatio;
 
 @Service
 public class UserService {
@@ -27,6 +30,9 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private List<IUserValidatio> validations;
+
     public UserEntity getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if(principal instanceof UserEntity) {
@@ -38,7 +44,7 @@ public class UserService {
 
     public UserEntity findById(UUID id) {
         return repository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new NotFoundException("User not found"));
     }
 
     public UserEntity registerUser(UserRegisterDTO dto) {
@@ -49,7 +55,7 @@ public class UserService {
 
         entity.setRole(UserType.ROLE_CLIENT);
 
-        return repository.save(entity);
+        return saveUser(entity);
     }
 
     public UserEntity updateUser(UserUpdateDTO dto) {
@@ -61,7 +67,7 @@ public class UserService {
             entity.setPassword(password);
         }
 
-        return repository.save(entity);
+        return saveUser(entity);
     }
 
     public Page<UserEntity> findAll(int page, int size) {
@@ -76,7 +82,24 @@ public class UserService {
 
     public UserEntity findByNickname(String nickname) {
         return repository.findByNickname(nickname)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new NotFoundException("User not found"));
+    }
+
+    private UserEntity saveUser(UserEntity user) {
+        validateUser(user);
+        return repository.save(user);
+    }
+
+    private void validateUser(UserEntity user) {
+        List<String> errors = new ArrayList<>();
+
+        for (IUserValidatio validation : validations) {
+            if(!validation.validate(user))
+                errors.add(validation.getMessage());
+        }
+
+        if (!errors.isEmpty())
+            throw new BadRequestException(errors);
     }
 
 }
