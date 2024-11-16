@@ -131,7 +131,7 @@ public class RiotAccService {
     private String getEndpoint(String tagLine, String gameName) {
         StringBuilder sb = new StringBuilder();
         sb.append(baseDns);
-        sb.append("lol/account/v1/accounts/by-riot-id/");
+        sb.append("riot/account/v1/accounts/by-riot-id/");
         sb.append(tagLine);
         sb.append("/");
         sb.append(gameName);
