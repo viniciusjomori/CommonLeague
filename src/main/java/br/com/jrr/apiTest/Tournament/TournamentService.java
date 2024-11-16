@@ -88,7 +88,8 @@ public class TournamentService {
         TournamentJoinEntity join = TournamentJoinEntity.builder()
             .team(team)
             .tournament(tournament)
-            .status(TournamentJoinStatus.WAITING)
+            .status(TournamentJoinStatus.WAITING_TOURNAMENT)
+            .round(0)
             .build();
         
         transactionService.createForTournament(members, qntChips, tournament);
@@ -103,7 +104,7 @@ public class TournamentService {
             .allMatch(TeamJoinEntity::isOpenToPlay);
     }
 
-    public TournamentJoinEntity getCurrentJoin() {
+    public TournamentJoinEntity getCurrentOpenJoin() {
         TeamEntity team = teamService.getCurrentTeam()
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN))
             .getTeam();
@@ -113,7 +114,7 @@ public class TournamentService {
     }
     
     public TournamentJoinEntity cancelJoin() {
-        TournamentJoinEntity tournamentJoin = getCurrentJoin();
+        TournamentJoinEntity tournamentJoin = getCurrentOpenJoin();
         TeamEntity team = teamService.getCurrentTeam()
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST))
             .getTeam();
@@ -131,7 +132,7 @@ public class TournamentService {
     }
 
     public void startTournament(TournamentEntity tournament) {
-        Collection<TournamentJoinEntity> joins = joinRepository.findWaitingByTournament(tournament);
+        Collection<TournamentJoinEntity> joins = joinRepository.findWaitingForTournament(tournament);
         validateTournament(joins);
         
         int providerId = requestProviderId(tournament);
@@ -149,13 +150,81 @@ public class TournamentService {
         
     }
 
-    public void finishTournament(TournamentEntity tournament) {
-        Collection<TournamentJoinEntity> joins = joinRepository.findPlayingByTournament(tournament);
+    public Optional<TournamentJoinEntity> findOpenByTeam(TeamEntity team) {
+        return joinRepository.findOpenByTeam(team);
+    }
 
-        if (joins.size() > 1)
+    public TournamentEntity findById(UUID id) {
+        return tournamentRepository.findById(id)
+            .orElseThrow(() -> new NotFoundException("Tournament not found"));
+    }
+
+    public Collection<TournamentEntity> findAllByTeam(TeamEntity team) {
+        Collection<TournamentJoinEntity> joins = joinRepository.findAllByTeam(team);
+        return joins.stream()
+            .map(TournamentJoinEntity::getTournament)
+            .toList();
+    }
+
+    public Collection<TournamentJoinEntity> findAllByTournament(TournamentEntity tournament) {
+        return joinRepository.findAllByTournament(tournament);
+    }
+
+    public Collection<TournamentEntity> findAllByCurrentTeam() {
+        TeamEntity team = teamService.getCurrentTeam()
+            .orElseThrow(() -> new NotFoundException("Team not found"))
+            .getTeam();
+        return findAllByTeam(team);
+    }
+
+    public TournamentJoinEntity findOpenByPuuids(List<String> puuids) {
+        TeamEntity team = teamService.findByRiotIds(puuids);
+
+        return findOpenByTeam(team)
+            .orElseThrow(() -> new BadRequestException(
+                String.format("Team %s is not in a tournament", team.getName())
+            ));
+    }
+
+    public void processRound(TournamentJoinEntity winner, TournamentJoinEntity loser) {
+        loser.setStatus(TournamentJoinStatus.LOSE);
+        loser.setExitDate(LocalDateTime.now());
+        joinRepository.save(loser);
+
+        winner.setStatus(TournamentJoinStatus.WAITING_ROUND);
+        winner.setRound(winner.getRound() + 1);
+        joinRepository.save(winner);
+
+        Collection<TournamentJoinEntity> playingJoins = joinRepository
+            .findPlayingByTournament(winner.getTournament());
+        
+        if(playingJoins.isEmpty()) {
+            Collection<TournamentJoinEntity> waitingRound = joinRepository.findWaitingForRound(winner.getTournament());
+            for (TournamentJoinEntity join : waitingRound) {
+                join.setStatus(TournamentJoinStatus.PLAYING);
+                joinRepository.save(join);
+            }
+        }
+
+        finishTournament(winner.getTournament());
+        
+    }
+
+    private void finishTournament(TournamentEntity tournament) {
+        Collection<TournamentJoinEntity> joins = joinRepository.findAllByTournament(tournament);
+
+        boolean isValidToFinish = 
+            joins.stream().filter(j -> j.getStatus().equals(TournamentJoinStatus.PLAYING)).count() == 1
+            && joins.stream().filter(j -> j.getStatus().equals(TournamentJoinStatus.LOSE)).count() == joins.size() - 1;
+
+        if (!isValidToFinish) {
             return;
+        }
 
-        TournamentJoinEntity winnerTournamentJoin = joins.iterator().next();
+        TournamentJoinEntity winnerTournamentJoin = joins.stream()
+            .filter(j -> j.getStatus().equals(TournamentJoinStatus.PLAYING))
+            .findFirst()
+            .get();
 
         winnerTournamentJoin.setStatus(TournamentJoinStatus.WIN);
         winnerTournamentJoin.setExitDate(LocalDateTime.now());
@@ -175,48 +244,6 @@ public class TournamentService {
         tournamentRepository.save(tournament);
 
         transactionService.rewardTournament(tournament, winners, losers);
-    }
-
-    public Optional<TournamentJoinEntity> findOpenByTeam(TeamEntity team) {
-        return joinRepository.findOpenByTeam(team);
-    }
-
-    public Collection<TournamentJoinEntity> findOpenByTournament(TournamentEntity tournament) {
-        return joinRepository.findOpenByTournament(tournament);
-    }
-
-    public TournamentEntity findById(UUID id) {
-        return tournamentRepository.findById(id)
-            .orElseThrow(() -> new NotFoundException("Tournament not found"));
-    }
-
-    public Collection<TournamentEntity> findAllByTeam(TeamEntity team) {
-        Collection<TournamentJoinEntity> joins = joinRepository.findActiveByTeam(team);
-        return joins.stream()
-            .map(TournamentJoinEntity::getTournament)
-            .toList();
-    }
-
-    public Collection<TournamentEntity> findAllByCurrentTeam() {
-        TeamEntity team = teamService.getCurrentTeam()
-            .orElseThrow(() -> new NotFoundException("Team not found"))
-            .getTeam();
-        return findAllByTeam(team);
-    }
-
-    public TournamentJoinEntity findActiveByPuuids(List<String> puuids) {
-        TeamEntity team = teamService.findByRiotIds(puuids);
-
-        return findOpenByTeam(team)
-            .orElseThrow(() -> new BadRequestException(
-                String.format("Team %s is not in a tournament", team.getName())
-            ));
-    }
-
-    public TournamentJoinEntity loseTournament(TournamentJoinEntity join) {
-        join.setStatus(TournamentJoinStatus.LOSE);
-        join.setExitDate(LocalDateTime.now());
-        return joinRepository.save(join);
     }
 
     private void validateMembers(Collection<TeamJoinEntity> members) {

@@ -11,7 +11,8 @@ public record MatchResponseDTO(
     UUID tournamentId,
     MatchStatus status,
     TeamInfoDTO teamWinner,
-    TeamInfoDTO teamLoser
+    TeamInfoDTO teamLoser,
+    int round
     
 ) {
     

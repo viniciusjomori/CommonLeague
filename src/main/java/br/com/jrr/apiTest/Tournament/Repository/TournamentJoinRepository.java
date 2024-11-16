@@ -12,15 +12,15 @@ import br.com.jrr.apiTest.Tournament.Entity.TournamentEntity;
 import br.com.jrr.apiTest.Tournament.Entity.TournamentJoinEntity;
 
 public interface TournamentJoinRepository extends JpaRepository<TournamentJoinEntity, UUID> {
-    
-    @Query("SELECT j FROM TournamentJoinEntity j WHERE j.team = :team AND (j.status = 'WAITING' OR j.status = 'PLAYING') AND j.active = true")
+
+    @Query("SELECT j FROM TournamentJoinEntity j WHERE j.team = :team AND exitDate IS NULL AND j.active = true")
     Optional<TournamentJoinEntity> findOpenByTeam(TeamEntity team);
 
-    @Query("SELECT j FROM TournamentJoinEntity j WHERE j.tournament = :tournament AND exitDate IS NOT NULL AND j.active = true")
-    Collection<TournamentJoinEntity> findOpenByTournament(TournamentEntity tournament);
+    @Query("SELECT j FROM TournamentJoinEntity j WHERE j.tournament = :tournament AND j.active = true")
+    Collection<TournamentJoinEntity> findAllByTournament(TournamentEntity tournament);
 
-    @Query("SELECT j FROM TournamentJoinEntity j WHERE j.tournament = :tournament AND j.status = 'WAITING' AND j.active = true")
-    Collection<TournamentJoinEntity> findWaitingByTournament(TournamentEntity tournament);
+    @Query("SELECT j FROM TournamentJoinEntity j WHERE j.tournament = :tournament AND j.status = 'WAITING_TOURNAMENT' AND j.active = true")
+    Collection<TournamentJoinEntity> findWaitingForTournament(TournamentEntity tournament);
 
     @Query("SELECT j FROM TournamentJoinEntity j WHERE j.tournament = :tournament AND j.status = 'PLAYING' AND j.active = true")
     Collection<TournamentJoinEntity> findPlayingByTournament(TournamentEntity tournament);
@@ -29,9 +29,9 @@ public interface TournamentJoinRepository extends JpaRepository<TournamentJoinEn
     Collection<TournamentJoinEntity> findLoseByTournament(TournamentEntity tournament);
 
     @Query("SELECT j FROM TournamentJoinEntity j WHERE j.team = :team AND j.active = true")
-    Collection<TournamentJoinEntity> findActiveByTeam(TeamEntity team);
+    Collection<TournamentJoinEntity> findAllByTeam(TeamEntity team);
 
-    @Query("SELECT count(j) FROM TournamentJoinEntity j WHERE j.tournament = :tournament AND j.status = 'WAITING' AND j.active = true")
-    int countWaitingByTournament(TournamentEntity tournament);
+    @Query("SELECT j FROM TournamentJoinEntity j WHERE j.tournament = :tournament AND j.status = 'WAITING_ROUND' AND j.active = true")
+    Collection<TournamentJoinEntity> findWaitingForRound(TournamentEntity tournament);
 
 }

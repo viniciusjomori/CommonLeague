@@ -50,7 +50,7 @@ public class TournamentController {
     @GetMapping("join")
     @RolesAllowed({"TEAM_MEMBER", "TEAM_CAPTAIN"})
     public ResponseEntity<TournamentJoinResponseDTO> getCurrentTournamentJoin() {
-        TournamentJoinEntity join = service.getCurrentJoin();
+        TournamentJoinEntity join = service.getCurrentOpenJoin();
         TournamentJoinResponseDTO response = joinMapper.toResponse(join);
         return ResponseEntity.ok(response);
     }
@@ -67,7 +67,7 @@ public class TournamentController {
     @PermitAll
     public ResponseEntity<Collection<TournamentJoinResponseDTO>> findTeamsByTournament(@PathVariable UUID id) {
         TournamentEntity tournament = service.findById(id);
-        Collection<TournamentJoinEntity> joins = service.findOpenByTournament(tournament);
+        Collection<TournamentJoinEntity> joins = service.findAllByTournament(tournament);
         Collection<TournamentJoinResponseDTO> response = joinMapper.toResponse(joins);
         return ResponseEntity.ok(response);
     }

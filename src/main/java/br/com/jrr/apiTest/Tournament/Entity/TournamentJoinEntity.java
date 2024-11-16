@@ -21,6 +21,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -57,5 +58,9 @@ public class TournamentJoinEntity extends BaseEntity {
     @Column
     @Enumerated(EnumType.STRING)
     private TournamentJoinStatus status;
+
+    @Column
+    @Min(0)
+    private int round;
 
 }

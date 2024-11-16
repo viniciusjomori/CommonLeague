@@ -22,6 +22,7 @@ public interface MatchMapper {
     @Mapping(target = "tournamentId", source = "join1.tournament.id")
     @Mapping(target = "teamWinner", source =  "winner.team", qualifiedByName = "toTeamInfo")
     @Mapping(target = "teamLoser", source = "loser.team", qualifiedByName = "toTeamInfo")
+    @Mapping(target = "round", source = "loser.round")
     MatchResponseDTO toResponse(MatchEntity entity);
 
     Collection<MatchResponseDTO> toResponse(Collection<MatchEntity> entities);

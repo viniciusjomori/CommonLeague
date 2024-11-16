@@ -10,7 +10,8 @@ public record TournamentJoinResponseDTO(
     UUID tournamentId,
     TeamInfoDTO team,
     TournamentJoinStatus status,
-    int qntChipsPerPlayer
+    int qntChipsPerPlayer,
+    int round
 ) {
     
 }
