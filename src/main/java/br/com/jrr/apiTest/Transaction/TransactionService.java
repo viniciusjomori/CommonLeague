@@ -6,6 +6,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import br.com.jrr.apiTest.App.Exceptions.ConflictException;
@@ -66,6 +68,12 @@ public class TransactionService {
 
         Collection<InventoryEntity> inventories = findMembersInventories(winners);
         createNewTransactions(inventories, rewardPerPlayer, TransactionType.WIN_TOURNAMENT);
+    }
+
+    public Page<TransactionEntity> findAllByCurrentUser(int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        Collection<InventoryEntity> inventories = inventoryService.findByCurrentUser();
+        return repository.findAllByInventories(inventories, pageable);
     }
 
     private Collection<InventoryEntity> findMembersInventories(Collection<TeamJoinEntity> members) {
