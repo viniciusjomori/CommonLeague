@@ -6,5 +6,6 @@ import java.util.UUID;
 
 public record NotificationDTO(
         NotificationType type,
-        UUID relatedId
+        UUID relatedId,
+        String idType
 ) {}

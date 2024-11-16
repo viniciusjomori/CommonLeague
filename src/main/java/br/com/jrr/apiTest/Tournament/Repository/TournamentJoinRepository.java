@@ -16,7 +16,7 @@ public interface TournamentJoinRepository extends JpaRepository<TournamentJoinEn
     @Query("SELECT j FROM TournamentJoinEntity j WHERE j.team = :team AND (j.status = 'WAITING' OR j.status = 'PLAYING') AND j.active = true")
     Optional<TournamentJoinEntity> findOpenByTeam(TeamEntity team);
 
-    @Query("SELECT j FROM TournamentJoinEntity j WHERE j.team = :team AND j.status = 'WAITING' AND j.active = true")
+    @Query("SELECT j FROM TournamentJoinEntity j WHERE j.team = :team AND j.active = true")
     Optional<TournamentJoinEntity> findActiveByTeam(TeamEntity team);
 
     @Query("SELECT j FROM TournamentJoinEntity j WHERE j.tournament = :tournament AND j.status = 'WAITING' AND j.active = true")

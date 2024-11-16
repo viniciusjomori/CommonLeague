@@ -4,6 +4,7 @@ import br.com.jrr.apiTest.Notification.DTO.NotificationDTO;
 import br.com.jrr.apiTest.Team.Entity.TeamJoinEntity;
 import br.com.jrr.apiTest.Team.Service.TeamService;
 import br.com.jrr.apiTest.Tournament.Entity.TournamentEntity;
+import br.com.jrr.apiTest.Tournament.Enum.TournamentStatus;
 import br.com.jrr.apiTest.Tournament.TournamentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,21 +21,38 @@ public class NotificationService {
 
     @Autowired
     private TournamentService tournamentService;
-    public List<NotificationDTO> getCurrentUserNotifications(){
-        TournamentEntity currentTournament = tournamentService.getCurrentActiveJoin().getTournament();
-        Collection<TeamJoinEntity> teamInvites = teamService.findPendingByCurrentUser();
 
+    public List<NotificationDTO> getCurrentUserNotifications(){
         List<NotificationDTO> notifications = new ArrayList<>();
 
-        //TODO check if user is on a team, if not, check team invites
-        //"Your team has been registered for a tournament" notification
-        notifications.add(new NotificationDTO(NotificationType.TOURNAMENT_ENTRY, currentTournament.getId()));
+        if(this.teamService.getCurrentTeam().isPresent()){
+            TournamentEntity currentTournament = tournamentService.getCurrentActiveJoin().getTournament();
+            NotificationType notificationType = notificationTypeByTournamentStatus(currentTournament.getStatus());
 
-        //"You've been invited for a team" notifications
-        for(TeamJoinEntity teamInvite : teamInvites){
-            notifications.add(new NotificationDTO(NotificationType.TEAM_INVITE, teamInvite.getId()));
+            //Tournament update notification
+            notifications.add(new NotificationDTO(notificationType, currentTournament.getId(), "tournamentEntity"));
+        }else{
+            Collection<TeamJoinEntity> teamInvites = teamService.findPendingByCurrentUser();
+
+            for(TeamJoinEntity teamInvite : teamInvites){
+                //Team invitation notifications
+                notifications.add(new NotificationDTO(NotificationType.TEAM_INVITE, teamInvite.getId(), "teamJoinEntity"));
+            }
         }
 
         return notifications;
+    }
+
+    private static NotificationType notificationTypeByTournamentStatus(TournamentStatus currentTournament) {
+        NotificationType type;
+
+        switch (currentTournament){
+            case PENDING -> type = NotificationType.TOURNAMENT_ENTRY;
+            case IN_PROGRESS -> type = NotificationType.TOURNAMENT_PLAYING;
+            case FINISHED -> type = NotificationType.TOURNAMENT_FINISHED;
+            case CANCELLED -> type = NotificationType.TOURNAMENT_LEFT;
+            default -> throw new IllegalArgumentException("Invalid tournament status");
+        }
+        return type;
     }
 }
