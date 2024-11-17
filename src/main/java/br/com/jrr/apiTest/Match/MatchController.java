@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,6 +44,13 @@ public class MatchController {
     public ResponseEntity<Collection<MatchResponseDTO>> findByTournament(@RequestParam("tournament") UUID tournamentId) {
         Collection<MatchEntity> matchs = service.findAllByTournament(tournamentId);
         return ResponseEntity.ok(mapper.toResponse(matchs));
+    }
+
+    @PermitAll
+    @GetMapping("{id}/metadata")
+    public ResponseEntity<String> findMetadata(@PathVariable UUID id) {
+        String metadata = service.getMetadataById(id);
+        return ResponseEntity.ok(metadata);
     }
 
 }

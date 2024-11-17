@@ -11,10 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import br.com.jrr.apiTest.App.Exceptions.BadRequestException;
+import br.com.jrr.apiTest.App.Exceptions.NotFoundException;
 import br.com.jrr.apiTest.Match.DTOs.FromRiotApi.MatchInfoDTO;
 import br.com.jrr.apiTest.Match.DTOs.FromRiotApi.MatchParticipantDTO;
 import br.com.jrr.apiTest.Match.DTOs.FromRiotApi.MatchRegisterDTO;
 import br.com.jrr.apiTest.Match.Enums.MatchStatus;
+import br.com.jrr.apiTest.PyRequest.PyRequestService;
 import br.com.jrr.apiTest.Tournament.TournamentService;
 import br.com.jrr.apiTest.Tournament.Entity.TournamentEntity;
 import br.com.jrr.apiTest.Tournament.Entity.TournamentJoinEntity;
@@ -28,6 +30,9 @@ public class MatchService {
 
     @Autowired
     private TournamentService tournamentService;
+
+    @Autowired
+    private PyRequestService requestService;
     
     public MatchEntity registerMatch(UUID tournamentId, MatchRegisterDTO dto) {
         String riotId = dto.metadata().matchId();
@@ -52,9 +57,9 @@ public class MatchService {
             .status(status)
             .build();
             
-            
         tournamentService.processRound(entity.getWinner(), entity.getLoser());
-
+        
+        entity = updateMetadata(entity);
         return repository.save(entity);
     }
 
@@ -66,6 +71,12 @@ public class MatchService {
         System.out.println("\n\n");
         return repository.findAllByJoins(joins);
     }
+
+    public String getMetadataById(UUID id) {
+        MatchEntity match = repository.findById(id)
+            .orElseThrow(() -> new NotFoundException("Match not found"));
+        return match.getMetaData();
+    } 
 
     private TournamentJoinEntity findParticipantByMatchInfo(MatchInfoDTO matchInfo, int teamId) {
         List<String> puuids = exctractPuuids(matchInfo, teamId);
@@ -103,6 +114,15 @@ public class MatchService {
             : info.teams().get(1).teamId();
 
         return teamWinnerId == 100 ? MatchStatus.TEAM_1_WINS : MatchStatus.TEAM_2_WINS;
+    }
+
+    protected MatchEntity updateMetadata(MatchEntity match) {
+        String metadata = requestService.requestMatchMetaData(match.getRiotId());
+
+        if(metadata != null)
+            match.setMetaData(metadata);
+
+        return match;
     }
 
 }

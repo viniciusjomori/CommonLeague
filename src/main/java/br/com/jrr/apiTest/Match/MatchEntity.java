@@ -58,6 +58,9 @@ public class MatchEntity extends BaseEntity {
     @Column
     private String riotId;
 
+    @Column(length = 12000)
+    private String metaData;
+
     public TournamentJoinEntity getWinner() {
         if (this.status.equals(MatchStatus.PENDING))
             return null;

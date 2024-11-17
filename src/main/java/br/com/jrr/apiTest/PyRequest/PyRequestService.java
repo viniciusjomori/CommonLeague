@@ -43,6 +43,21 @@ public class PyRequestService {
         return summonerInfo;
     }
 
+    public String requestMatchMetaData(String riotId) {
+        String metadata = null;
+        PyBaseRequestDTO request = PyBaseRequestDTO.toRequestMatch(riotId);
+        HttpDTO response = request("riotrun", RequestMethod.GET, request);
+
+        if(response.statusCode() == 200) {
+            JsonObject jsonObject = gson.fromJson(response.jsonBody(), JsonObject.class);
+            JsonObject dataObject = jsonObject.getAsJsonObject("data");
+            metadata = dataObject.toString();
+        }
+
+        return metadata;
+
+    }
+
     private HttpDTO request(String endpoint, RequestMethod method, PyBaseRequestDTO body) {
         endpoint = baseDns + endpoint;
         body.setUser_key(password);
