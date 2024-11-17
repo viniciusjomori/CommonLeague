@@ -50,7 +50,6 @@ public class RiotAccService {
             .gameName(accInfo.gameName())
             .tagLine(accInfo.tagLine())
             .puuid(accInfo.puuid())
-            .enableToChange(true)
             .build();
         
         entity = updateSummonerInfo(entity);
@@ -60,11 +59,7 @@ public class RiotAccService {
 
     public void disconnect(UserEntity user) {
         repository.findActiveByUser(user)
-            .ifPresent(account -> {
-
-                if (!account.isEnableToChange())
-                    throw new BadRequestException("Your Riot Account are not enable to change");
-                
+            .ifPresent(account -> {               
                 account.setActive(false);
                 repository.save(account);
             });
@@ -86,13 +81,6 @@ public class RiotAccService {
 
     public Collection<RiotAccEntity> findByRiotIds(Collection<String> riotIds) {
         return repository.findActiveByRiotIds(riotIds);
-    }
-
-    public Collection<RiotAccEntity> setEnableToChange(Collection<RiotAccEntity> accounts, boolean enableToChange) {
-        for (RiotAccEntity account : accounts) {
-            account.setEnableToChange(enableToChange);
-        }
-        return accounts;
     }
 
     protected RiotAccEntity updateSummonerInfo(RiotAccEntity account) {

@@ -46,9 +46,6 @@ public class RiotAccEntity extends BaseEntity {
     private String puuid;
 
     @Column
-    private boolean enableToChange;
-
-    @Column
     private int summonerLevel;
 
     @Column
