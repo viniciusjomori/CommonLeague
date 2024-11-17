@@ -41,4 +41,7 @@ public class ChipEntity extends BaseEntity {
     @Column(nullable = false)
     private int value;
 
+    @Column
+    private String imagePath;
+
 }

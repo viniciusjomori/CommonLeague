@@ -5,7 +5,8 @@ import java.util.UUID;
 public record ChipResponseDTO(
     UUID id,
     String description,
-    double value
+    double value,
+    String imagePath
 ) {
     
 }

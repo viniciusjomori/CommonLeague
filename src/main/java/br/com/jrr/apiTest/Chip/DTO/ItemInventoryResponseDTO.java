@@ -5,7 +5,8 @@ import java.util.UUID;
 public record ItemInventoryResponseDTO(
     UUID chipId,
     String description,
-    int qnt
+    int qnt,
+    String imagePath
 ) {
     
 }

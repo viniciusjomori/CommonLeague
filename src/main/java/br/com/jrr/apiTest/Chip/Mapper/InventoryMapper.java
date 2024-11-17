@@ -17,6 +17,7 @@ public interface InventoryMapper {
 
     @Mapping(source = "chip.id", target = "chipId")
     @Mapping(source = "chip.description", target = "description")
+    @Mapping(source = "chip.imagePath", target = "imagePath")
     ItemInventoryResponseDTO toResponse(InventoryEntity entity);
     Collection<ItemInventoryResponseDTO> toResponse(Collection<InventoryEntity> entities);
 }
