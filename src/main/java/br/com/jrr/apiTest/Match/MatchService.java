@@ -72,11 +72,10 @@ public class MatchService {
         return repository.findAllByJoins(joins);
     }
 
-    public String getMetadataById(UUID id) {
-        MatchEntity match = repository.findById(id)
+    public MatchEntity findById(UUID id) {
+        return repository.findById(id)
             .orElseThrow(() -> new NotFoundException("Match not found"));
-        return match.getMetaData();
-    } 
+    }
 
     private TournamentJoinEntity findParticipantByMatchInfo(MatchInfoDTO matchInfo, int teamId) {
         List<String> puuids = exctractPuuids(matchInfo, teamId);

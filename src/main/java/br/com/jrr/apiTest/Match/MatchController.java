@@ -46,10 +46,18 @@ public class MatchController {
         return ResponseEntity.ok(mapper.toResponse(matchs));
     }
 
+    @GetMapping("{id}")
+    @PermitAll
+    public ResponseEntity<MatchResponseDTO> findById(@PathVariable UUID id) {
+        MatchEntity match = service.findById(id);
+        return ResponseEntity.ok(mapper.toResponse(match));
+    }
+
     @PermitAll
     @GetMapping("{id}/metadata")
     public ResponseEntity<String> findMetadata(@PathVariable UUID id) {
-        String metadata = service.getMetadataById(id);
+        MatchEntity match = service.findById(id);
+        String metadata = match.getMetaData();
         return ResponseEntity.ok(metadata);
     }
 
