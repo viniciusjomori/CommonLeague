@@ -48,6 +48,12 @@ public class RiotAccEntity extends BaseEntity {
     @Column
     private boolean enableToChange;
 
+    @Column
+    private int summonerLevel;
+
+    @Column
+    private int profileIconId;
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;

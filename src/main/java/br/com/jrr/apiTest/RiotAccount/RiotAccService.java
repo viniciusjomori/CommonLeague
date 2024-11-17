@@ -7,8 +7,10 @@ import org.springframework.stereotype.Service;
 
 import br.com.jrr.apiTest.App.Exceptions.BadRequestException;
 import br.com.jrr.apiTest.App.Exceptions.NotFoundException;
+import br.com.jrr.apiTest.PyRequest.PyRequestService;
 import br.com.jrr.apiTest.RiotAccount.DTO.RiotAccConnectDTO;
 import br.com.jrr.apiTest.RiotAccount.DTO.RiotAccFromApiDTO;
+import br.com.jrr.apiTest.RiotAccount.DTO.SummonerInfoDTO;
 import br.com.jrr.apiTest.RiotRequest.RiotRequestService;
 import br.com.jrr.apiTest.User.UserEntity;
 import br.com.jrr.apiTest.User.UserService;
@@ -24,27 +26,34 @@ public class RiotAccService {
 
     @Autowired
     private RiotRequestService riotRequestService;
+
+    @Autowired
+    private PyRequestService pyRequestService;
     
 
     public RiotAccEntity connect(RiotAccConnectDTO dto) {
         repository.findByPlayerInfo(dto.gameName(), dto.tagLine())
             .ifPresent(r -> { throw new BadRequestException("This Riot account is already connected"); });;
 
-        RiotAccFromApiDTO response = riotRequestService.requestPuuid(dto.tagLine(), dto.gameName());
+        RiotAccFromApiDTO riotAccResponse = riotRequestService.requestPuuid(dto.tagLine(), dto.gameName());
         
-        return connect(response);
+
+        return connect(riotAccResponse);
     }
 
-    public RiotAccEntity connect(RiotAccFromApiDTO dto) {
+    public RiotAccEntity connect(RiotAccFromApiDTO accInfo) {
         UserEntity user = userService.getCurrentUser();
         disconnect(user);
+
         RiotAccEntity entity = RiotAccEntity.builder()
             .user(user)
-            .gameName(dto.gameName())
-            .tagLine(dto.tagLine())
-            .puuid(dto.puuid())
+            .gameName(accInfo.gameName())
+            .tagLine(accInfo.tagLine())
+            .puuid(accInfo.puuid())
             .enableToChange(true)
             .build();
+        
+        entity = updateSummonerInfo(entity);
         
         return repository.save(entity);
     }
@@ -86,6 +95,14 @@ public class RiotAccService {
         return accounts;
     }
 
-    
+    protected RiotAccEntity updateSummonerInfo(RiotAccEntity account) {
+        SummonerInfoDTO summonerInfo = pyRequestService.requestSummonerInfo(account.getPuuid());
+        if(summonerInfo != null) {
+            account.setSummonerLevel(summonerInfo.summonerLevel());
+            account.setProfileIconId(summonerInfo.profileIconId());
+        }
+
+        return account;
+    }
 
 }

@@ -5,5 +5,7 @@ import java.util.UUID;
 public record RiotAccClientDTO(
     String gameName,
     String tagLine,
-    UUID userId
+    UUID userId,
+    int summonerLevel,
+    int profileIconId
 ) {}
