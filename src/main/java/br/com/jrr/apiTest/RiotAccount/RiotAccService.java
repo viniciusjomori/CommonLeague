@@ -1,24 +1,15 @@
 package br.com.jrr.apiTest.RiotAccount;
 
 import java.util.Collection;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
-import com.google.gson.Gson;
 
 import br.com.jrr.apiTest.App.Exceptions.BadRequestException;
 import br.com.jrr.apiTest.App.Exceptions.NotFoundException;
-import br.com.jrr.apiTest.Request.HttpDTO;
-import br.com.jrr.apiTest.Request.Enum.RequestMethod;
-import br.com.jrr.apiTest.Request.Service.RequestService;
 import br.com.jrr.apiTest.RiotAccount.DTO.RiotAccConnectDTO;
 import br.com.jrr.apiTest.RiotAccount.DTO.RiotAccFromApiDTO;
-import br.com.jrr.apiTest.RiotAccount.Strategy.IRiotAccError;
+import br.com.jrr.apiTest.RiotRequest.RiotRequestService;
 import br.com.jrr.apiTest.User.UserEntity;
 import br.com.jrr.apiTest.User.UserService;
 
@@ -32,35 +23,16 @@ public class RiotAccService {
     private RiotAccRepository repository;
 
     @Autowired
-    private RequestService requestService;
+    private RiotRequestService riotRequestService;
     
-    @Autowired
-    private Gson gson;
-
-    @Autowired
-    private List<IRiotAccError> errors;
-
-    @Value("${lol.api-key}")
-    private String apiKey;
-
-    @Value("${lol.base-dns}")
-    private String baseDns;
 
     public RiotAccEntity connect(RiotAccConnectDTO dto) {
         repository.findByPlayerInfo(dto.gameName(), dto.tagLine())
             .ifPresent(r -> { throw new BadRequestException("This Riot account is already connected"); });;
 
-        String endpoint = getEndpoint(dto.gameName(), dto.tagLine());
-
-        HttpDTO httpDTO = requestService.request(
-            endpoint,
-            RequestMethod.GET
-        );
+        RiotAccFromApiDTO response = riotRequestService.requestPuuid(dto.tagLine(), dto.gameName());
         
-        validateResponse(httpDTO);
-
-        RiotAccFromApiDTO responseBody = gson.fromJson(httpDTO.jsonBody(), RiotAccFromApiDTO.class);
-        return connect(responseBody);
+        return connect(response);
     }
 
     public RiotAccEntity connect(RiotAccFromApiDTO dto) {
@@ -114,30 +86,6 @@ public class RiotAccService {
         return accounts;
     }
 
-    private void validateResponse(HttpDTO dto) {
-        if (dto.statusCode() == 200) return;
     
-        IRiotAccError matchedError = errors.stream()
-            .filter(error -> error.isError(dto))
-            .findFirst()
-            .orElse(null);
-    
-        int statusError = matchedError != null ? matchedError.getStatusCode() : 500;
-        String errorMessage = matchedError != null ? matchedError.getMessage() : "Internal Server Error";
-    
-        throw new ResponseStatusException(HttpStatus.valueOf(statusError), errorMessage);
-    }
-
-    private String getEndpoint(String tagLine, String gameName) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(baseDns);
-        sb.append("riot/account/v1/accounts/by-riot-id/");
-        sb.append(tagLine);
-        sb.append("/");
-        sb.append(gameName);
-        sb.append("?api_key=");
-        sb.append(apiKey);
-        return sb.toString();
-    }
 
 }
