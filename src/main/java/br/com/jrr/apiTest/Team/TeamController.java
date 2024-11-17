@@ -20,10 +20,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.jrr.apiTest.Team.DTO.InviteResponseDTO;
 import br.com.jrr.apiTest.Team.DTO.MemberResponseDTO;
+import br.com.jrr.apiTest.Team.DTO.TeamProfileDTO;
 import br.com.jrr.apiTest.Team.DTO.TeamRegisterDTO;
 import br.com.jrr.apiTest.Team.DTO.TeamResponseDTO;
 import br.com.jrr.apiTest.Team.Entity.TeamEntity;
 import br.com.jrr.apiTest.Team.Entity.TeamJoinEntity;
+import br.com.jrr.apiTest.Team.Enum.TeamProfile;
 import br.com.jrr.apiTest.Team.Mapper.TeamJoinMapper;
 import br.com.jrr.apiTest.Team.Mapper.TeamMapper;
 import br.com.jrr.apiTest.Team.Service.TeamService;
@@ -139,6 +141,12 @@ public class TeamController {
         UserEntity user = userService.findById(id);
         TeamJoinEntity join = teamService.toCaptain(user);
         return ResponseEntity.ok(joinMapper.toMember(join));
+    }
+
+    @GetMapping("/profile")
+    @PermitAll
+    public ResponseEntity<Collection<TeamProfileDTO>> getProfiles() {
+        return ResponseEntity.ok(TeamProfile.toDTOS());
     }
 
 

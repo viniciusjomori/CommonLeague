@@ -16,7 +16,7 @@ public enum TeamProfile {
         this.imagePath = imagePath;
     }
 
-    public Collection<TeamProfileDTO> toDTOS() {
+    public static Collection<TeamProfileDTO> toDTOS() {
         Collection<TeamProfileDTO> dtos = new ArrayList<>();
         for (TeamProfile profile : TeamProfile.values()) {
             dtos.add(new TeamProfileDTO(profile, profile.imagePath));
