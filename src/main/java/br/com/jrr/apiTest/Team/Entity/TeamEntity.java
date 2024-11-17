@@ -41,4 +41,7 @@ public class TeamEntity extends BaseEntity {
     @OneToMany(mappedBy = "team")
     private Collection<TeamJoinEntity> joins;
 
+    @Column
+    private String imagePath;
+
 }

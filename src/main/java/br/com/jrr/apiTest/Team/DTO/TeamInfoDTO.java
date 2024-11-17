@@ -4,7 +4,8 @@ import java.util.UUID;
 
 public record TeamInfoDTO(
     UUID id,
-    String name
+    String name,
+    String imagePath
 ) {
     
 }

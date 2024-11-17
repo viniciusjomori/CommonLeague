@@ -17,6 +17,7 @@ import br.com.jrr.apiTest.Team.DTO.TeamRegisterDTO;
 import br.com.jrr.apiTest.Team.Entity.TeamEntity;
 import br.com.jrr.apiTest.Team.Entity.TeamJoinEntity;
 import br.com.jrr.apiTest.Team.Enum.TeamJoinStatus;
+import br.com.jrr.apiTest.Team.Enum.TeamProfile;
 import br.com.jrr.apiTest.Team.Enum.TeamRoleName;
 import br.com.jrr.apiTest.Team.Service.TeamService;
 import jakarta.transaction.Transactional;
@@ -39,7 +40,7 @@ public class TeamTest extends BaseTest {
     public void setupUser() {
         defineCurrentUser(user1);
 
-        TeamRegisterDTO register = new TeamRegisterDTO("team name test");
+        TeamRegisterDTO register = new TeamRegisterDTO("team name test", TeamProfile.FISH);
         team = teamService.registerTeam(register);
 
         invite2 = teamService.inviteUser(user2);
@@ -64,7 +65,7 @@ public class TeamTest extends BaseTest {
     @Test
     @Transactional
     public void registerTeam_AlreadyInTeam_Fail() {
-        TeamRegisterDTO register = new TeamRegisterDTO("team name test 2");
+        TeamRegisterDTO register = new TeamRegisterDTO("team name test 2", TeamProfile.PHOENIX);
 
         assertThrows(ResponseStatusException.class, () -> {
             teamService.registerTeam(register);
@@ -78,7 +79,7 @@ public class TeamTest extends BaseTest {
         teamService.leftTeam();
 
         assertDoesNotThrow(() -> {
-            TeamRegisterDTO newRegister = new TeamRegisterDTO("new team name test");
+            TeamRegisterDTO newRegister = new TeamRegisterDTO("new team name test", TeamProfile.TURTLE);
             teamService.registerTeam(newRegister);
         });
     }
@@ -149,7 +150,7 @@ public class TeamTest extends BaseTest {
     public void acceptInvite_AlreadyInTeam_Fail() {
         defineCurrentUser(user2);
 
-        teamService.registerTeam(new TeamRegisterDTO("already in team"));
+        teamService.registerTeam(new TeamRegisterDTO("already in team", TeamProfile.FISH));
 
         assertThrows(ResponseStatusException.class, () -> {
             teamService.acceptInvite(invite2.getId());
