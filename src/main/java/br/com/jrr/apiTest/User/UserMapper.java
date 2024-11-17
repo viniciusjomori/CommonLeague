@@ -4,11 +4,13 @@ import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 import org.springframework.data.domain.Page;
 
+import br.com.jrr.apiTest.User.DTO.UserInfo;
 import br.com.jrr.apiTest.User.DTO.UserRegisterDTO;
 import br.com.jrr.apiTest.User.DTO.UserResponseDTO;
 import br.com.jrr.apiTest.User.DTO.UserUpdateDTO;
@@ -28,6 +30,9 @@ public interface UserMapper {
     UserEntity updateUser(UserUpdateDTO dto, @MappingTarget UserEntity entity);
 
     UserResponseDTO toResponse(UserEntity entity);
+
+    @Named("toUserInfo")
+    UserInfo toInfo(UserEntity entity);
 
     default Page<UserResponseDTO> toResponse(Page<UserEntity> entities) {
         return entities.map(this::toResponse);
