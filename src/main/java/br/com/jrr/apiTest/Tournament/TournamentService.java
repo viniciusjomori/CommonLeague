@@ -109,10 +109,12 @@ public class TournamentService {
     }
     
     public TournamentJoinEntity cancelJoin() {
-        TournamentJoinEntity tournamentJoin = getCurrentOpenJoin();
         TeamEntity team = teamService.getCurrentTeam()
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST))
             .getTeam();
+        TournamentJoinEntity tournamentJoin = joinRepository
+            .findWaitingForTournament(team)
+            .orElseThrow(() -> new BadRequestException("You are not waiting a tournament"));
         
         Collection<TeamJoinEntity> members = teamService.findActiveByTeam(team);
         TournamentEntity tournament = tournamentJoin.getTournament();
