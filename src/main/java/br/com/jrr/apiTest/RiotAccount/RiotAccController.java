@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +39,7 @@ public class RiotAccController {
     
     @PostMapping
     @RolesAllowed("CLIENT")
+    @PreAuthorize("hasAuthority('UNLOCKED')")
     public ResponseEntity<RiotAccClientDTO> connect(@RequestBody @Valid RiotAccConnectDTO request) {
         RiotAccEntity entity = accountService.connect(request);
         RiotAccClientDTO response = mapper.toResponse(entity);
@@ -46,6 +48,7 @@ public class RiotAccController {
 
     @DeleteMapping
     @RolesAllowed("CLIENT")
+    @PreAuthorize("hasAuthority('UNLOCKED')")
     public ResponseEntity<ResponseDTO> disconnect() {
         UserEntity user = userService.getCurrentUser();
         accountService.disconnect(user);

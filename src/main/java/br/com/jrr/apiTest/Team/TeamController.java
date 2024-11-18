@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -100,6 +101,7 @@ public class TeamController {
 
     @DeleteMapping("left")
     @RolesAllowed({"TEAM_MEMBER", "TEAM_CAPTAIN"})
+    @PreAuthorize("hasAuthority('UNLOCKED')")
     public ResponseEntity<MemberResponseDTO> leftTeam() {
         TeamJoinEntity join = teamService.leftTeam();
         return ResponseEntity.ok(joinMapper.toMember(join));
@@ -107,6 +109,7 @@ public class TeamController {
 
     @PostMapping("/invite")
     @RolesAllowed({"TEAM_MEMBER", "TEAM_CAPTAIN"})
+    @PreAuthorize("hasAuthority('UNLOCKED')")
     public ResponseEntity<InviteResponseDTO> inviteUser(@RequestParam("user") UUID userId) {
         UserEntity user = userService.findById(userId);
         TeamJoinEntity invite = teamService.inviteUser(user);
@@ -129,6 +132,7 @@ public class TeamController {
 
     @DeleteMapping("/user/{id}")
     @RolesAllowed("TEAM_CAPTAIN")
+    @PreAuthorize("hasAuthority('UNLOCKED')")
     public ResponseEntity<MemberResponseDTO> banUser(@PathVariable UUID id) {
         UserEntity user = userService.findById(id);
         TeamJoinEntity join = teamService.banUser(user);
@@ -137,6 +141,7 @@ public class TeamController {
 
     @PutMapping("/user/{id}/to-captain")
     @RolesAllowed("TEAM_CAPTAIN")
+    @PreAuthorize("hasAuthority('UNLOCKED')")
     public ResponseEntity<MemberResponseDTO> toCaptain(@PathVariable UUID id) {
         UserEntity user = userService.findById(id);
         TeamJoinEntity join = teamService.toCaptain(user);

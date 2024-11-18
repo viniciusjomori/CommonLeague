@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,6 +42,7 @@ public class TournamentController {
     
     @PostMapping("join")
     @RolesAllowed("TEAM_CAPTAIN")
+    @PreAuthorize("hasAuthority('UNLOCKED')")
     public ResponseEntity<TournamentJoinResponseDTO> joinTournament(@RequestParam("qntChips") int qntChips) {
         TournamentJoinEntity join = service.joinTournament(qntChips);
         TournamentJoinResponseDTO response = joinMapper.toResponse(join);

@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.jrr.apiTest.Security.Filters.CaptainFilter;
 import br.com.jrr.apiTest.Security.Filters.TokenFilter;
+import br.com.jrr.apiTest.Security.Filters.TournamentFilter;
 import br.com.jrr.apiTest.User.UserRepository;
 
 @Configuration
@@ -28,6 +29,9 @@ public class SecurityConfig {
 
     @Autowired
     private CaptainFilter captainFilter;
+
+    @Autowired
+    private TournamentFilter tournamentFilter;
     
     @Autowired
     private UserRepository userRepository;
@@ -45,6 +49,7 @@ public class SecurityConfig {
             })
             .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(captainFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(tournamentFilter, UsernamePasswordAuthenticationFilter.class)
             .build();
     }
 
