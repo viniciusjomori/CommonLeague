@@ -263,7 +263,7 @@ public class TournamentService {
     private void validateTournament(Collection<TournamentJoinEntity> joins) {
         int size = joins.size();
         double log2 = Math.log(size) / Math.log(2);
-        if(!(log2 == (int) log2))
+        if(!(log2 == (int) log2) && size < 4)
             throw new ConflictException("Tournament cannot start");
     }
 
