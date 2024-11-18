@@ -95,7 +95,7 @@ public class TournamentService {
 
     public TournamentJoinEntity getCurrentOpenJoin() {
         TeamEntity team = teamService.getCurrentTeam()
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN))
+            .orElseThrow(() -> new ForbiddenException("You're not on a team"))
             .getTeam();
         
         return findOpenByTeam(team)
