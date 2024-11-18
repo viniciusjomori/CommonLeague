@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 
 import br.com.jrr.apiTest.App.Exceptions.BadRequestException;
 import br.com.jrr.apiTest.App.Exceptions.NotFoundException;
@@ -50,6 +51,8 @@ public class RiotAccService {
             .gameName(accInfo.gameName())
             .tagLine(accInfo.tagLine())
             .puuid(accInfo.puuid())
+            .summonerLevel(0)
+            .profileIconId(0)
             .build();
         
         entity = updateSummonerInfo(entity);
@@ -84,11 +87,13 @@ public class RiotAccService {
     }
 
     protected RiotAccEntity updateSummonerInfo(RiotAccEntity account) {
-        SummonerInfoDTO summonerInfo = pyRequestService.requestSummonerInfo(account.getPuuid());
-        if(summonerInfo != null) {
-            account.setSummonerLevel(summonerInfo.summonerLevel());
-            account.setProfileIconId(summonerInfo.profileIconId());
-        }
+        try {
+            SummonerInfoDTO summonerInfo = pyRequestService.requestSummonerInfo(account.getPuuid());
+            if(summonerInfo != null) {
+                account.setSummonerLevel(summonerInfo.summonerLevel());
+                account.setProfileIconId(summonerInfo.profileIconId());
+            }
+        } catch (WebClientRequestException ex) {}
 
         return account;
     }
