@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import br.com.jrr.apiTest.App.ResponseDTO;
 import br.com.jrr.apiTest.Request.Service.RequestSignatureService;
 import br.com.jrr.apiTest.Transaction.DTOs.TransactionResponseDTO;
+import jakarta.annotation.security.RolesAllowed;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -53,6 +54,7 @@ public class TransactionController {
     }
 
     @GetMapping
+    @RolesAllowed("CLIENT")
     public ResponseEntity<Page<TransactionResponseDTO>> findAllByCurrentUser(
         @RequestParam(value = "page", defaultValue = "0") int page,
         @RequestParam(value = "size", defaultValue = "10") int size
