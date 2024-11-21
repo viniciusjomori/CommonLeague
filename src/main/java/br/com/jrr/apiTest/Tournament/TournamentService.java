@@ -78,7 +78,7 @@ public class TournamentService {
             .team(team)
             .tournament(tournament)
             .status(TournamentJoinStatus.WAITING_TOURNAMENT)
-            .round(0)
+            .round(1)
             .build();
         
         transactionService.createForTournament(members, qntChips, tournament);
@@ -184,44 +184,56 @@ public class TournamentService {
     }
 
     public void processRound(TournamentJoinEntity winner, TournamentJoinEntity loser) {
+        loseTournament(loser);
+        
+        Collection<TournamentJoinEntity> joins = joinRepository.findAllByTournament(winner.getTournament());
+        
+        if(nextRound(joins)) return;
+        if(finishTournament(joins)) return;
+        
+        winner.setStatus(TournamentJoinStatus.WAITING_ROUND);
+        joinRepository.save(winner);
+    }
+
+    private void loseTournament(TournamentJoinEntity loser) {
         loser.setStatus(TournamentJoinStatus.LOSE);
         loser.setExitDate(LocalDateTime.now());
         joinRepository.save(loser);
-
-        winner.setStatus(TournamentJoinStatus.WAITING_ROUND);
-        winner.setRound(winner.getRound() + 1);
-        joinRepository.save(winner);
-
-        Collection<TournamentJoinEntity> playingJoins = joinRepository
-            .findPlayingByTournament(winner.getTournament());
-        
-        if(playingJoins.isEmpty()) {
-            Collection<TournamentJoinEntity> waitingRound = joinRepository.findWaitingForRound(winner.getTournament());
-            for (TournamentJoinEntity join : waitingRound) {
-                join.setStatus(TournamentJoinStatus.PLAYING);
-                joinRepository.save(join);
-            }
-        }
-
-        finishTournament(winner.getTournament());
-        
     }
 
-    private void finishTournament(TournamentEntity tournament) {
-        Collection<TournamentJoinEntity> joins = joinRepository.findAllByTournament(tournament);
+    private boolean nextRound(Collection<TournamentJoinEntity> joins) {
+        boolean canNextRound =
+            joins.stream().filter(j -> j.getStatus().equals(TournamentJoinStatus.WAITING_ROUND)).count() > 0
+            && joins.stream().filter(j -> j.getStatus().equals(TournamentJoinStatus.PLAYING)).count() == 1;
 
-        boolean isValidToFinish = 
+        if(!canNextRound)
+            return false;
+
+        joins.stream()
+            .filter(j -> !j.getStatus().equals(TournamentJoinStatus.LOSE))
+            .forEach(join -> {
+                join.setStatus(TournamentJoinStatus.PLAYING);
+                join.setRound(join.getRound() + 1);
+                joinRepository.save(join);
+            });
+        
+        return true;
+    }
+
+    private boolean finishTournament(Collection<TournamentJoinEntity> joins) {
+        boolean canFinishTournament = 
             joins.stream().filter(j -> j.getStatus().equals(TournamentJoinStatus.PLAYING)).count() == 1
-            && joins.stream().filter(j -> j.getStatus().equals(TournamentJoinStatus.LOSE)).count() == joins.size() - 1;
+            && joins.stream().filter(j -> j.getStatus().equals(TournamentJoinStatus.LOSE)).count() == joins.size()-1;
 
-        if (!isValidToFinish) {
-            return;
-        }
+        if (!canFinishTournament)
+            return false;
 
         TournamentJoinEntity winnerTournamentJoin = joins.stream()
             .filter(j -> j.getStatus().equals(TournamentJoinStatus.PLAYING))
             .findFirst()
             .get();
+
+        TournamentEntity tournament = winnerTournamentJoin.getTournament();
 
         winnerTournamentJoin.setStatus(TournamentJoinStatus.WIN);
         winnerTournamentJoin.setExitDate(LocalDateTime.now());
@@ -241,6 +253,8 @@ public class TournamentService {
         tournamentRepository.save(tournament);
 
         transactionService.rewardTournament(tournament, winners, losers);
+        
+        return true;
     }
 
     private void validateMembers(Collection<TeamJoinEntity> members) {

@@ -57,7 +57,7 @@ public class TournamentJoinEntity extends BaseEntity {
     private TournamentJoinStatus status;
 
     @Column
-    @Min(0)
+    @Min(1)
     private int round;
 
 }
