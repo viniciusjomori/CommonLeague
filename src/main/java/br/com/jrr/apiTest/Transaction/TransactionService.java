@@ -62,7 +62,7 @@ public class TransactionService {
     public void rewardTournament(TournamentEntity tournament, Collection<TeamJoinEntity> winners, Collection<TeamJoinEntity> losers) {
         int qntChipPerPlayer = tournament.getQntChipsPerPlayer();
         int tournamentSize = losers.size() + winners.size();
-        double amountChips = qntChipPerPlayer * tournamentSize * 0.85;
+        double amountChips = qntChipPerPlayer * tournamentSize * 0.75;
 
         int rewardPerPlayer = (int) Math.ceil(amountChips / winners.size());
 
