@@ -26,7 +26,7 @@ public class ChipService {
 
     public ChipEntity getCommomCoin() {
         return repository
-            .findByDescription("Common Coin")
+            .findByDescription("Common Chip")
             .get();
     }
 
