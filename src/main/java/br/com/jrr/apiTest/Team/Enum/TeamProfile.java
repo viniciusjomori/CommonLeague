@@ -6,9 +6,9 @@ import java.util.Collection;
 import br.com.jrr.apiTest.Team.DTO.TeamProfileDTO;
 
 public enum TeamProfile {
-    FISH("https://github.com/NathanNevesPrates/CommonLeagueImages/blob/main/team_icons/fish.png?raw=true"),
-    PHOENIX("https://raw.githubusercontent.com/NathanNevesPrates/CommonLeagueImages/refs/heads/main/team_icons/phoenix.png"),
-    TURTLE("https://github.com/NathanNevesPrates/CommonLeagueImages/blob/main/team_icons/turtle.png?raw=true");
+    FISH("https://raw.githubusercontent.com/NathanNevesPrates/CommonLeagueImages/refs/heads/main/team/fish.png"),
+    PHOENIX("https://raw.githubusercontent.com/NathanNevesPrates/CommonLeagueImages/refs/heads/main/team/phoenix.png"),
+    TURTLE("https://raw.githubusercontent.com/NathanNevesPrates/CommonLeagueImages/refs/heads/main/team/turtle.png");
 
     public String imagePath;
 
