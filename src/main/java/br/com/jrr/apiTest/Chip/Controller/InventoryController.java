@@ -13,6 +13,7 @@ import br.com.jrr.apiTest.Chip.DTO.ItemInventoryResponseDTO;
 import br.com.jrr.apiTest.Chip.Entity.InventoryEntity;
 import br.com.jrr.apiTest.Chip.Mapper.InventoryMapper;
 import br.com.jrr.apiTest.Chip.Service.InventoryService;
+import jakarta.annotation.security.RolesAllowed;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -26,6 +27,7 @@ public class InventoryController {
     private InventoryMapper mapper;
     
     @GetMapping
+    @RolesAllowed("CLIENT")
     public ResponseEntity<Collection<ItemInventoryResponseDTO>> getInventory() {
         Collection<InventoryEntity> entities = service.findByCurrentUser();
         return ResponseEntity.ok(mapper.toResponse(entities));
